@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Módulo 1 · Arquitectura & Primeros Pasos — ARTECLAB</title>
+  <link rel="stylesheet" href="../css/course.css">
+  <link rel="icon" href="../img/logo-arteclab.png" type="image/png">
+</head>
+<body>
+<div class="site-wrapper">
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="../index.html" class="topbar-brand">
+        <img src="../img/logo-arteclab.png" alt="ARTECLAB">
+        <span>/</span>
+        <span class="brand-course">GeoServer</span>
+      </a>
+      <nav class="topbar-nav">
+        <a href="../index.html">Inicio</a>
+        <a href="index.html" class="active">Módulo 1</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <div class="mod-header">
+      <span class="mod-chip">Módulo 1 de 7</span>
+      <h1 class="mod-title">Arquitectura &<br>Primeros Pasos ⚙️</h1>
+      <p class="mod-desc">Entiende cómo funciona un servidor de mapas, instala GeoServer y publica tu primera capa geoespacial. Al terminar tienes un servidor real funcionando.</p>
+      <div class="mod-stats">
+        <span class="mod-stat">📅 Clase 1</span>
+        <span class="mod-stat">⏱️ 2 horas</span>
+        <span class="mod-stat">🎯 Básico</span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-target="t-clase01">Clase 01 — Instalación y Primera Capa</button>
+      <button class="tab-btn" data-target="t-quiz1">📝 Cuestionario</button>
+    </div>
+
+    <!-- ═══ CLASE 01 ═══ -->
+    <div id="t-clase01" class="tab-panel active">
+
+      <div class="sec">
+        <h2 class="sec-heading">🎯 Objetivo</h2>
+        <p class="sec-lead">Instalar GeoServer, entender su arquitectura, navegar la interfaz de administración y publicar tu primera capa desde un shapefile.</p>
+      </div>
+
+      <!-- ── Qué es GeoServer ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🖥️ ¿Qué es GeoServer?</h2>
+
+        <div class="card">
+          <div class="card-title">Un servidor que sirve datos geográficos por internet</div>
+          <p>GeoServer es un programa de código abierto que se instala en un servidor (tu PC, un servidor de la oficina, o la nube). Su trabajo es tomar datos geográficos y exponerlos como servicios web que cualquier aplicación puede consumir: sitios web, apps móviles, QGIS, ArcGIS, o cualquier herramienta que entienda los estándares OGC.</p>
+
+          <p style="margin-top:14px;">Piensa en un restaurante:</p>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin:16px 0;">
+            <div style="background:var(--bg-surface); padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); text-align:center;">
+              <div style="font-size:1.5rem;">🗄️</div>
+              <strong style="color:var(--text-primary); font-size:0.85rem;">Tus datos</strong><br>
+              <span style="font-size:0.8rem;">Shapefiles, PostGIS, GeoTIFF = ingredientes crudos</span>
+            </div>
+            <div style="background:var(--bg-surface); padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); text-align:center;">
+              <div style="font-size:1.5rem;">👨‍🍳</div>
+              <strong style="color:var(--text-primary); font-size:0.85rem;">GeoServer</strong><br>
+              <span style="font-size:0.8rem;">El chef que procesa, estiliza y sirve los datos</span>
+            </div>
+            <div style="background:var(--teal-glow); padding:14px; border-radius:var(--radius-sm); text-align:center;">
+              <div style="font-size:1.5rem;">📋</div>
+              <strong style="color:var(--teal-400); font-size:0.85rem;">WMS / WFS</strong><br>
+              <span style="font-size:0.8rem;">El menú: estándares para pedir datos</span>
+            </div>
+            <div style="background:var(--bg-surface); padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); text-align:center;">
+              <div style="font-size:1.5rem;">🌐📱</div>
+              <strong style="color:var(--text-primary); font-size:0.85rem;">Clientes</strong><br>
+              <span style="font-size:0.8rem;">Web, móvil, QGIS = los comensales</span>
+            </div>
+          </div>
+
+          <div class="callout callout--info">
+            <span class="callout-icon">💡</span>
+            <div><strong>No mandas datos crudos al cliente.</strong> GeoServer los procesa (renderiza, filtra, estiliza) y sirve como imágenes (WMS) o como datos estructurados (WFS). El cliente nunca toca tus archivos originales.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Los 3 estándares OGC que dominarás</div>
+          <p>OGC (Open Geospatial Consortium) define los estándares internacionales para que servidores y clientes GIS hablen el mismo idioma:</p>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:14px 0;">
+            <div style="background:var(--teal-glow); padding:16px; border-radius:var(--radius-sm);">
+              <strong style="color:var(--teal-400);">WMS — Web Map Service</strong><br>
+              <span style="font-size:0.85rem;">Pides una imagen del mapa → recibes un PNG. Es lo más común. El servidor renderiza los datos y te manda la foto.</span>
+            </div>
+            <div style="background:rgba(59,130,246,0.08); padding:16px; border-radius:var(--radius-sm);">
+              <strong style="color:var(--blue-500);">WFS — Web Feature Service</strong><br>
+              <span style="font-size:0.85rem;">Pides los datos vectoriales → recibes GeoJSON o GML. El cliente puede analizar, filtrar y estilizar los datos por su cuenta.</span>
+            </div>
+            <div style="background:rgba(168,85,247,0.08); padding:16px; border-radius:var(--radius-sm);">
+              <strong style="color:var(--purple-500);">WCS — Web Coverage Service</strong><br>
+              <span style="font-size:0.85rem;">Pides datos raster → recibes la imagen satelital o DEM completa. Menos común, más especializado.</span>
+            </div>
+          </div>
+
+          <p>En este curso nos enfocamos en <strong>WMS y WFS</strong> — son los que usarás en el 95% de los proyectos reales.</p>
+        </div>
+      </div>
+
+      <!-- ── Instalación ── -->
+      <div class="sec">
+        <h2 class="sec-heading">📦 Instalación de GeoServer</h2>
+
+        <div class="card">
+          <div class="card-title">Requisitos previos</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin:12px 0;">
+            <div style="background:var(--bg-surface); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); font-size:0.88rem;">
+              <strong>Java 11+</strong> — GeoServer está escrito en Java. Sin Java, no arranca.
+            </div>
+            <div style="background:var(--bg-surface); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); font-size:0.88rem;">
+              <strong>2 GB RAM</strong> — mínimo libre para que GeoServer funcione bien.
+            </div>
+            <div style="background:var(--bg-surface); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); font-size:0.88rem;">
+              <strong>Puerto 8080</strong> — debe estar libre. Si otro programa lo usa, cámbialo.
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Windows — Instalación con binario ZIP</div>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">PowerShell</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm"># 1. Verificar que Java está instalado</span>
+java -version
+
+<span class="hl-cm"># 2. Descargar GeoServer desde:</span>
+<span class="hl-cm">#    https://geoserver.org/release/stable/</span>
+<span class="hl-cm">#    → "Binary (OS independent)" → descargar ZIP</span>
+
+<span class="hl-cm"># 3. Descomprimir en C:\geoserver</span>
+
+<span class="hl-cm"># 4. Iniciar GeoServer</span>
+cd C:\geoserver\bin
+startup.bat
+
+<span class="hl-cm"># 5. Esperar ~30 segundos y abrir en el navegador:</span>
+<span class="hl-cm">#    http://localhost:8080/geoserver</span></pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Linux (Ubuntu/Debian)</div>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Bash</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm"># 1. Instalar Java</span>
+sudo apt update
+sudo apt install openjdk-11-jdk -y
+java -version
+
+<span class="hl-cm"># 2. Descargar y descomprimir GeoServer</span>
+cd /opt
+sudo wget https://sourceforge.net/projects/geoserver/files/GeoServer/2.26.1/geoserver-2.26.1-bin.zip
+sudo unzip geoserver-2.26.1-bin.zip
+sudo mv geoserver-2.26.1 geoserver
+
+<span class="hl-cm"># 3. Iniciar</span>
+cd /opt/geoserver/bin
+sudo ./startup.sh
+
+<span class="hl-cm"># 4. Abrir: http://localhost:8080/geoserver</span></pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Login — Credenciales por defecto</div>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Credenciales</span></div>
+            <pre>Usuario:     admin
+Contraseña:  geoserver</pre>
+          </div>
+          <div class="callout callout--danger">
+            <span class="callout-icon">⚠️</span>
+            <div><strong>NUNCA dejes esta contraseña en producción.</strong> Cualquiera que sepa la URL de tu GeoServer podría entrar. En el Módulo 5 configuramos seguridad real.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Interfaz ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🧭 La Interfaz de Administración</h2>
+
+        <div class="card">
+          <div class="card-title">Las 5 secciones que necesitas conocer ahora</div>
+          <div class="glossary">
+            <div class="glossary-item"><span class="glossary-term">Server Status</span><span class="glossary-def">¿Está vivo el servidor? Memoria disponible, versión instalada, estado general.</span></div>
+            <div class="glossary-item"><span class="glossary-term">Workspaces</span><span class="glossary-def">Carpetas organizativas. Agrupan capas relacionadas (ej: un workspace por proyecto).</span></div>
+            <div class="glossary-item"><span class="glossary-term">Stores</span><span class="glossary-def">Conexiones a fuentes de datos. Le dicen a GeoServer DÓNDE están tus datos.</span></div>
+            <div class="glossary-item"><span class="glossary-term">Layers</span><span class="glossary-def">Capas publicadas. Cada capa es un dataset accesible vía WMS/WFS.</span></div>
+            <div class="glossary-item"><span class="glossary-term">Layer Preview</span><span class="glossary-def">Vista previa rápida. Verificas que tu capa se ve correctamente antes de usarla.</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">La jerarquía fundamental de GeoServer</div>
+          <p>Todo en GeoServer sigue esta estructura. Si la entiendes, entiendes GeoServer:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Jerarquía</span></div>
+            <pre>📁 Workspace  (carpeta organizativa — ej: "mi_proyecto")
+ └── 🔌 Store  (conexión a datos — ej: "archivo shapefile" o "base PostGIS")
+      └── 🗺️ Layer  (capa publicada — ej: "países")
+           └── 🎨 Style  (estilo visual — ej: "polígonos verdes con borde")</pre>
+          </div>
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div>Piensa en QGIS: un <strong>proyecto</strong> (.qgz) contiene <strong>conexiones a datos</strong> (archivos, bases), que exponen <strong>capas</strong>, cada una con su <strong>estilo</strong>. GeoServer es la misma lógica pero del lado del servidor.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Primera capa ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🚀 Publica Tu Primera Capa</h2>
+
+        <div class="card">
+          <div class="card-title">Paso 1 — Descargar datos de práctica</div>
+          <p>Descarga un shapefile de países del mundo desde Natural Earth (datos gratuitos, sin licencia):</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">URL</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>https://www.naturalearthdata.com/downloads/110m-cultural-vectors/</pre>
+          </div>
+          <p style="margin-top:8px;">Descarga <strong>"Admin 0 – Countries"</strong>. Descomprime el ZIP en una carpeta accesible (ej: <code>C:\geodatos\</code> o <code>/home/tu_usuario/geodatos/</code>).</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Paso 2 — Crear un Workspace</div>
+          <p>Menú lateral → <strong>Workspaces</strong> → <strong>Add new workspace</strong></p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Configuración</span></div>
+            <pre>Name:       mi_proyecto
+Namespace:  http://localhost/mi_proyecto
+Default:    ✓ (marcado)</pre>
+          </div>
+          <div class="callout callout--info">
+            <span class="callout-icon">💡</span>
+            <div><strong>¿Qué es el Namespace?</strong> Es un identificador único en formato URL. No necesita ser una URL real — es solo para que GeoServer diferencie workspaces. El nombre es lo que usarás en las URLs de tus servicios.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Paso 3 — Crear un Store (conexión al shapefile)</div>
+          <p>Menú lateral → <strong>Stores</strong> → <strong>Add new Store</strong> → <strong>Shapefile</strong></p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Configuración</span></div>
+            <pre>Workspace:       mi_proyecto
+Data Source Name: paises_shp
+Shapefile URL:   file:///C:/geodatos/ne_110m_admin_0_countries.shp
+                 (o la ruta donde descomprimiste)
+Character Set:   UTF-8</pre>
+          </div>
+          <div class="callout callout--warn">
+            <span class="callout-icon">⚠️</span>
+            <div>La ruta al shapefile debe ser <strong>accesible por GeoServer</strong>. Si GeoServer corre como servicio, verifica que el usuario del servicio tenga permisos de lectura en esa carpeta.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Paso 4 — Publicar la capa</div>
+          <p>Después de guardar el Store, GeoServer te muestra las capas disponibles. Haz clic en <strong>"Publish"</strong> junto al nombre.</p>
+          <p style="margin-top:10px;">En la pestaña <strong>Data</strong>:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Configuración</span></div>
+            <pre>Name:     paises
+Title:    Países del mundo
+Abstract: Límites de países — fuente Natural Earth
+
+SRS:      EPSG:4326
+          → Clic en "Compute from data"
+          → Clic en "Compute from native bounds"</pre>
+          </div>
+          <p style="margin-top:8px;">Clic en <strong>Save</strong>.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Paso 5 — Verificar en Layer Preview</div>
+          <p>Menú lateral → <strong>Layer Preview</strong> → Buscar "paises" → Clic en <strong>OpenLayers</strong></p>
+          <p style="margin-top:10px;">Si ves un mapa con los países del mundo, <strong>tu primera capa está publicada y funcionando</strong>.</p>
+          <div class="callout callout--tip">
+            <span class="callout-icon">🎉</span>
+            <div>¡Felicidades! Tienes un servidor de mapas real funcionando en tu máquina. Cualquier aplicación que se conecte a <code>http://localhost:8080/geoserver</code> puede consumir tus datos.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── URL WMS ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🔗 Anatomía de una URL WMS</h2>
+
+        <div class="card">
+          <div class="card-title">Tu servidor ya está sirviendo mapas — probémoslo</div>
+          <p>Copia esta URL y pégala en tu navegador (ajusta el nombre de workspace y capa):</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">URL WMS</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>http://localhost:8080/geoserver/mi_proyecto/wms?
+  service=WMS
+  &version=1.1.1
+  &request=GetMap
+  &layers=mi_proyecto:paises
+  &styles=
+  &srs=EPSG:4326
+  &bbox=-180,-90,180,90
+  &width=800
+  &height=400
+  &format=image/png</pre>
+          </div>
+          <p style="margin-top:10px;">Cada parámetro tiene un propósito:</p>
+          <div class="glossary">
+            <div class="glossary-item"><span class="glossary-term">service</span><span class="glossary-def">Tipo de servicio: WMS</span></div>
+            <div class="glossary-item"><span class="glossary-term">request</span><span class="glossary-def">Qué pides: GetMap = "dame una imagen del mapa"</span></div>
+            <div class="glossary-item"><span class="glossary-term">layers</span><span class="glossary-def">Qué capa quieres: workspace:nombre_capa</span></div>
+            <div class="glossary-item"><span class="glossary-term">bbox</span><span class="glossary-def">Zona geográfica: minX,minY,maxX,maxY (west,south,east,north)</span></div>
+            <div class="glossary-item"><span class="glossary-term">width / height</span><span class="glossary-def">Tamaño de la imagen en píxeles</span></div>
+            <div class="glossary-item"><span class="glossary-term">srs</span><span class="glossary-def">Sistema de coordenadas: EPSG:4326 = latitud/longitud</span></div>
+            <div class="glossary-item"><span class="glossary-term">format</span><span class="glossary-def">Formato de la imagen: image/png, image/jpeg</span></div>
+          </div>
+          <p style="margin-top:12px;">Si ves una imagen PNG con los países, tu servidor WMS está funcionando perfectamente.</p>
+        </div>
+      </div>
+
+      <!-- ── Glosario ── -->
+      <div class="sec">
+        <h2 class="sec-heading">📖 Glosario — Clase 01</h2>
+        <div class="glossary">
+          <div class="glossary-item"><span class="glossary-term">GeoServer</span><span class="glossary-def">Servidor de datos geográficos de código abierto. Publica datos como servicios WMS/WFS.</span></div>
+          <div class="glossary-item"><span class="glossary-term">OGC</span><span class="glossary-def">Open Geospatial Consortium. Define los estándares internacionales de interoperabilidad GIS.</span></div>
+          <div class="glossary-item"><span class="glossary-term">WMS</span><span class="glossary-def">Web Map Service. Devuelve imágenes renderizadas del mapa (PNG, JPEG).</span></div>
+          <div class="glossary-item"><span class="glossary-term">WFS</span><span class="glossary-def">Web Feature Service. Devuelve datos vectoriales (GeoJSON, GML) para análisis.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Workspace</span><span class="glossary-def">Carpeta organizativa en GeoServer. Agrupa capas relacionadas.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Store</span><span class="glossary-def">Conexión a una fuente de datos. Le dice a GeoServer dónde están los archivos o la base de datos.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Layer</span><span class="glossary-def">Capa publicada y accesible vía WMS/WFS. Cada Store puede tener múltiples Layers.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Layer Preview</span><span class="glossary-def">Herramienta de GeoServer para ver rápidamente si una capa se publica correctamente.</span></div>
+          <div class="glossary-item"><span class="glossary-term">EPSG:4326</span><span class="glossary-def">Sistema de coordenadas geográficas WGS84. Latitud/longitud en grados. El más común.</span></div>
+          <div class="glossary-item"><span class="glossary-term">GetMap</span><span class="glossary-def">Tipo de petición WMS: "dame una imagen del mapa con estos parámetros".</span></div>
+          <div class="glossary-item"><span class="glossary-term">Shapefile</span><span class="glossary-def">Formato de archivo vectorial (.shp + .shx + .dbf + .prj). Requiere los 4 archivos juntos.</span></div>
+        </div>
+      </div>
+
+      <!-- ── Práctica ── -->
+      <div class="practice">
+        <span class="practice-chip">💻 Práctica 01</span>
+        <div class="practice-title">Tu Primer Servidor de Mapas</div>
+        <ol class="practice-steps">
+          <li><strong>Instala GeoServer</strong> en tu máquina (Windows o Linux). Verifica que arranca en <code>http://localhost:8080/geoserver</code>.</li>
+          <li><strong>Descarga un shapefile</strong> de países desde <a href="https://www.naturalearthdata.com/downloads/110m-cultural-vectors/" target="_blank">Natural Earth</a> (Admin 0 – Countries).</li>
+          <li><strong>Crea un Workspace</strong> llamado <code>mi_proyecto</code>.</li>
+          <li><strong>Crea un Store</strong> tipo Shapefile apuntando al archivo descargado. Charset: UTF-8.</li>
+          <li><strong>Publica la capa.</strong> Pon nombre, título, SRS (EPSG:4326) y computa el Bounding Box.</li>
+          <li><strong>Verifica en Layer Preview</strong> que el mapa se ve correctamente.</li>
+          <li><strong>Prueba la URL WMS</strong> en el navegador — verifica que devuelve una imagen PNG.</li>
+          <li><strong>Bonus:</strong> Agrega la URL WMS de tu GeoServer como capa en QGIS (Capa → Agregar WMS/WMTS).</li>
+        </ol>
+      </div>
+
+      <!-- ── Checklist ── -->
+      <div class="sec">
+        <h2 class="sec-heading">✅ Checklist — Clase 01</h2>
+        <ul class="checklist">
+          <li><span class="ck-box"></span> GeoServer instalado y corriendo en localhost:8080</li>
+          <li><span class="ck-box"></span> Login exitoso en la interfaz de administración</li>
+          <li><span class="ck-box"></span> Conozco las secciones principales de la interfaz</li>
+          <li><span class="ck-box"></span> Workspace creado</li>
+          <li><span class="ck-box"></span> Store creado con un shapefile</li>
+          <li><span class="ck-box"></span> Capa publicada y visible en Layer Preview</li>
+          <li><span class="ck-box"></span> URL WMS probada en el navegador</li>
+          <li><span class="ck-box"></span> Entiendo la jerarquía: Workspace → Store → Layer</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ═══ CUESTIONARIO ═══ -->
+    <div id="t-quiz1" class="tab-panel">
+      <div class="sec">
+        <h2 class="sec-heading">📝 Autoevaluación — Módulo 1</h2>
+        <p class="sec-lead">Verifica tu comprensión de la arquitectura de GeoServer y los conceptos básicos.</p>
+      </div>
+
+      <div class="quiz">
+        <div class="quiz-heading">🧠 Cuestionario — 8 preguntas</div>
+
+        <div class="quiz-q" data-qi="1" data-ans="b" data-explain="WMS devuelve imágenes renderizadas del mapa (PNG, JPEG). WFS devuelve datos vectoriales.">
+          <p class="quiz-q-text"><span class="quiz-q-num">1.</span> ¿Qué devuelve un servicio WMS?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Datos vectoriales en GeoJSON</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Una imagen renderizada del mapa (PNG/JPEG)</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Un archivo shapefile</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Una base de datos PostGIS</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="2" data-ans="c" data-explain="La jerarquía es: Workspace contiene Stores, que contienen Layers.">
+          <p class="quiz-q-text"><span class="quiz-q-num">2.</span> ¿Cuál es el orden correcto de la jerarquía en GeoServer?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Layer → Store → Workspace</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Store → Layer → Workspace</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Workspace → Store → Layer</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Layer → Workspace → Store</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="3" data-ans="a" data-explain="Un Store es la conexión a la fuente de datos — dónde están los archivos o la base de datos.">
+          <p class="quiz-q-text"><span class="quiz-q-num">3.</span> ¿Qué es un Store en GeoServer?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> La conexión a una fuente de datos (archivo, base de datos)</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Un estilo visual para las capas</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Un usuario del sistema</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Una imagen del mapa</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="4" data-ans="d" data-explain="GeoServer necesita Java para ejecutarse. Sin Java instalado, no arranca.">
+          <p class="quiz-q-text"><span class="quiz-q-num">4.</span> ¿Qué software necesitas tener instalado ANTES de instalar GeoServer?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Python</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Node.js</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> PostgreSQL</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Java (JDK 11+)</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="5" data-ans="b" data-explain="Un shapefile necesita mínimo .shp, .shx, .dbf y .prj para funcionar correctamente.">
+          <p class="quiz-q-text"><span class="quiz-q-num">5.</span> ¿Cuántos archivos mínimos necesita un shapefile para funcionar?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Solo 1 (el .shp)</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> 4 (.shp, .shx, .dbf, .prj)</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> 2 (.shp, .dbf)</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> 6 archivos</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="6" data-ans="c" data-explain="GetMap es la petición WMS que dice 'dame una imagen del mapa con estos parámetros'.">
+          <p class="quiz-q-text"><span class="quiz-q-num">6.</span> ¿Qué tipo de petición WMS usas para obtener una imagen del mapa?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> GetFeature</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> GetCapabilities</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> GetMap</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> GetImage</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="7" data-ans="a" data-explain="El parámetro bbox define la zona geográfica: minX,minY,maxX,maxY.">
+          <p class="quiz-q-text"><span class="quiz-q-num">7.</span> ¿Qué define el parámetro <code>bbox</code> en una URL WMS?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> La zona geográfica de la imagen (rectángulo)</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> El tamaño en píxeles</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> El estilo de la capa</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> El formato de salida</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="8" data-ans="d" data-explain="WFS devuelve datos vectoriales (GeoJSON, GML) que el cliente puede analizar y filtrar.">
+          <p class="quiz-q-text"><span class="quiz-q-num">8.</span> ¿Cuándo usarías WFS en vez de WMS?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Cuando quieres una imagen más bonita</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Cuando quieres imprimir el mapa</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Cuando quieres datos raster</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Cuando necesitas los datos vectoriales para analizar o filtrar en el cliente</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <button class="quiz-submit">Verificar Respuestas</button>
+        <div class="quiz-result"></div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <a href="../index.html" class="btn-nav btn-prev">← Mapa del Curso</a>
+      <a href="../modulo-02/index.html" class="btn-nav btn-next">Módulo 2 — Publicación de Datos →</a>
+    </div>
+
+  </main>
+</div>
+<script src="../js/course.js"></script>
+</body>
+</html>
