@@ -90,25 +90,38 @@
         </div>
 
         <div class="card">
-          <div class="card-title">Los 3 estándares OGC que dominarás</div>
-          <p>OGC (Open Geospatial Consortium) define los estándares internacionales para que servidores y clientes GIS hablen el mismo idioma:</p>
+          <div class="card-title">Estándares OGC — El idioma universal de los servidores GIS</div>
+          <p>OGC (Open Geospatial Consortium) define los estándares internacionales para que cualquier servidor y cualquier cliente GIS se entiendan entre sí. GeoServer implementa los principales.</p>
 
-          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:14px 0;">
-            <div style="background:var(--teal-glow); padding:16px; border-radius:var(--radius-sm);">
-              <strong style="color:var(--teal-400);">WMS — Web Map Service</strong><br>
-              <span style="font-size:0.85rem;">Pides una imagen del mapa → recibes un PNG. Es lo más común. El servidor renderiza los datos y te manda la foto.</span>
+          <p style="margin-top:16px; font-weight:700; color:var(--teal-400);">⭐ Los 2 que dominarás en este curso:</p>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; margin:14px 0;">
+            <div style="background:var(--teal-glow); padding:18px; border-radius:var(--radius-sm); border:1px solid rgba(45,212,191,0.15);">
+              <strong style="color:var(--teal-400); font-size:1rem;">WMS — Web Map Service</strong><br>
+              <span style="font-size:0.85rem;">Devuelve <strong>imágenes</strong> renderizadas del mapa (PNG, JPEG). El servidor dibuja los datos y te manda la foto. Es lo que ves en el 90% de los visores de mapas web.</span><br>
+              <span style="font-size:0.8rem; color:var(--text-muted); margin-top:6px; display:block;">Analogía: pides un plato servido → recibes la foto del plato.</span>
             </div>
-            <div style="background:rgba(59,130,246,0.08); padding:16px; border-radius:var(--radius-sm);">
-              <strong style="color:var(--blue-500);">WFS — Web Feature Service</strong><br>
-              <span style="font-size:0.85rem;">Pides los datos vectoriales → recibes GeoJSON o GML. El cliente puede analizar, filtrar y estilizar los datos por su cuenta.</span>
-            </div>
-            <div style="background:rgba(168,85,247,0.08); padding:16px; border-radius:var(--radius-sm);">
-              <strong style="color:var(--purple-500);">WCS — Web Coverage Service</strong><br>
-              <span style="font-size:0.85rem;">Pides datos raster → recibes la imagen satelital o DEM completa. Menos común, más especializado.</span>
+            <div style="background:rgba(59,130,246,0.1); padding:18px; border-radius:var(--radius-sm); border:1px solid rgba(59,130,246,0.15);">
+              <strong style="color:var(--blue-500); font-size:1rem;">WFS — Web Feature Service</strong><br>
+              <span style="font-size:0.85rem;">Devuelve <strong>datos vectoriales</strong> con geometrías y atributos (GeoJSON, GML). El cliente puede analizar, filtrar y estilizar los datos por su cuenta.</span><br>
+              <span style="font-size:0.8rem; color:var(--text-muted); margin-top:6px; display:block;">Analogía: pides los ingredientes → recibes la receta completa.</span>
             </div>
           </div>
 
-          <p>En este curso nos enfocamos en <strong>WMS y WFS</strong> — son los que usarás en el 95% de los proyectos reales.</p>
+          <p style="margin-top:20px; font-weight:700; color:var(--text-secondary);">📚 Otros estándares OGC que GeoServer soporta:</p>
+
+          <div class="glossary" style="margin-top:10px;">
+            <div class="glossary-item"><span class="glossary-term">WCS</span><span class="glossary-def"><strong>Web Coverage Service.</strong> Sirve datos raster completos (imágenes satelitales, DEMs, ortoimágenes). Lo usas cuando necesitas el raster original para análisis, no solo una imagen visualizada.</span></div>
+            <div class="glossary-item"><span class="glossary-term">WMTS</span><span class="glossary-def"><strong>Web Map Tile Service.</strong> Sirve tiles precalculados (imágenes cortadas en cuadrículas). Ideal para mapas base de alto rendimiento con muchos usuarios — Google Maps y OpenStreetMap usan este concepto.</span></div>
+            <div class="glossary-item"><span class="glossary-term">WPS</span><span class="glossary-def"><strong>Web Processing Service.</strong> Ejecuta geoprocesos en el servidor (buffer, intersección, reproyección). Análisis espacial remoto sin descargar datos. Poco usado en la práctica.</span></div>
+            <div class="glossary-item"><span class="glossary-term">CSW</span><span class="glossary-def"><strong>Catalogue Service for the Web.</strong> Publica y busca metadatos de capas y servicios. Se usa en Infraestructuras de Datos Espaciales (IDE) nacionales y regionales.</span></div>
+            <div class="glossary-item"><span class="glossary-term">TMS</span><span class="glossary-def"><strong>Tile Map Service.</strong> Similar a WMTS pero más simple. Sirve tiles por URL predecible. Alternativa ligera usada por OpenStreetMap.</span></div>
+          </div>
+
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div>En este curso nos enfocamos en <strong>WMS y WFS</strong> — son los dos servicios que usarás en el 95% de los proyectos reales. Los demás los mencionaremos cuando sea relevante (WMTS en el Módulo 7 con GeoWebCache), pero no son el foco.</div>
+          </div>
         </div>
       </div>
 

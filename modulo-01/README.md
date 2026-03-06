@@ -8,7 +8,7 @@
 ## 🎯 Objetivos
 
 - Entender la arquitectura cliente-servidor en GIS
-- Conocer los estándares OGC (WMS, WFS, WCS)
+- Conocer los estándares OGC (WMS, WFS y panorama general de WCS, WMTS, WPS, CSW)
 - Instalar GeoServer en Windows y Linux
 - Navegar la interfaz de administración
 - Entender la estructura: Workspace → Store → Layer
@@ -44,15 +44,28 @@ Sirve como WMS/WFS          Cualquier app que hable OGC
 **Tus datos son los ingredientes.** No los mandas crudos al cliente.
 GeoServer los cocina (renderiza, filtra, estiliza) y los sirve como imagen (WMS) o como datos (WFS).
 
-### Los 3 estándares OGC que dominarás
+### Los estándares OGC — El idioma universal de los servidores GIS
 
-| Estándar | ¿Qué hace? | Analogía |
-|----------|-----------|----------|
-| **WMS** | Devuelve imágenes del mapa | Pides un plato servido → recibes una foto |
-| **WFS** | Devuelve datos vectoriales (GeoJSON, GML) | Pides los ingredientes → recibes la receta |
-| **WCS** | Devuelve datos raster | Pides la imagen satelital completa |
+OGC (Open Geospatial Consortium) define los estándares que permiten que cualquier servidor y cualquier cliente GIS se entiendan entre sí. GeoServer implementa los principales:
 
-> **En este curso nos enfocamos en WMS y WFS** — son los más usados en producción.
+#### ⭐ Los 2 que dominarás en este curso
+
+| Estándar | ¿Qué hace? | Analogía | Uso típico |
+|----------|-----------|----------|------------|
+| **WMS** | Devuelve **imágenes** renderizadas del mapa (PNG, JPEG) | Pides un plato servido → recibes una foto del plato | Visualización de mapas en web y móvil. El 90% de lo que ves en un visor de mapas |
+| **WFS** | Devuelve **datos vectoriales** (GeoJSON, GML) con geometrías y atributos | Pides los ingredientes → recibes la receta completa | Descarga de datos, análisis en el cliente, edición remota de features |
+
+#### 📚 Otros estándares OGC que GeoServer soporta
+
+| Estándar | ¿Qué hace? | Cuándo se usa |
+|----------|-----------|---------------|
+| **WCS** (Web Coverage Service) | Sirve datos **raster** completos (imágenes satelitales, DEMs, ortoimágenes) | Cuando necesitas el raster original para análisis, no solo una imagen visualizada |
+| **WMTS** (Web Map Tile Service) | Sirve **tiles precalculados** (imágenes cortadas en cuadrículas) | Mapas base de alto rendimiento con miles de usuarios — Google Maps usa este concepto |
+| **WPS** (Web Processing Service) | Ejecuta **geoprocesos** en el servidor (buffer, intersección, reproyección) | Análisis espacial remoto sin descargar datos. Poco usado en la práctica |
+| **CSW** (Catalogue Service for the Web) | Publica y busca **metadatos** de capas y servicios | Infraestructuras de Datos Espaciales (IDE) nacionales y regionales |
+| **TMS** (Tile Map Service) | Similar a WMTS pero más simple. Sirve tiles por URL predecible | Alternativa ligera a WMTS. Usado por OpenStreetMap |
+
+> **En este curso nos enfocamos en WMS y WFS** — son los dos servicios que usarás en el 95% de los proyectos reales. WCS, WMTS y los demás los mencionaremos cuando sea relevante, pero no son el foco.
 
 ---
 
