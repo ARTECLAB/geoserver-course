@@ -41,18 +41,24 @@ Los estudiantes usarán datos de Natural Earth (genéricos, para cualquier país
 
 **Instala EN VIVO en tu máquina.** Los estudiantes siguen en sus PCs.
 
+> "Vamos a usar la instalación profesional: WAR sobre Tomcat. ¿Por qué no el binario ZIP? Porque en producción nadie usa el Jetty embebido. Si desde el día 1 aprenden con Tomcat, cuando lleguemos al deploy en la nube ya saben cómo funciona."
+
 Secuencia:
 1. Verificar Java: `java -version`
-2. Descargar ZIP de geoserver.org
-3. Descomprimir
-4. Ejecutar `startup.bat` (Windows) o `startup.sh` (Linux)
-5. Esperar que arranque (30-60 seg)
+2. Verificar/instalar Tomcat 9
+3. Descargar GeoServer 2.28.2 WAR
+4. Copiar `geoserver.war` a `webapps/`
+5. Iniciar Tomcat → esperar que despliegue (~60 seg)
 6. Abrir `http://localhost:8080/geoserver`
 7. Login con admin/geoserver
 
-**Error que VAN a tener:** Java no instalado o puerto ocupado. Ten la solución lista.
+**Errores que VAN a tener:**
+- Java no instalado → tener link de adoptium.net listo
+- Puerto 8080 ocupado → `netstat -ano | findstr 8080` para identificar
+- WAR no se despliega → verificar que está en `webapps/`, no en una subcarpeta
+- Memoria insuficiente → crear `setenv.bat`/`setenv.sh`
 
-> "Si les dice 'java not found', descarguen OpenJDK 11 de adoptium.net. Si el puerto 8080 está ocupado, usen 8888 cambiando en start.ini."
+> "Si les dice 'java not found', instalen OpenJDK 11 desde adoptium.net. Si el puerto 8080 está ocupado, primero cierren el programa que lo usa."
 
 ### Parte 3 — Interfaz (15 min)
 
@@ -93,7 +99,7 @@ Secuencia:
 | Problema | Solución |
 |----------|----------|
 | Java not found | Instalar OpenJDK 11 de adoptium.net |
-| Port 8080 in use | Cambiar puerto en start.ini o cerrar app que usa 8080 |
+| Port 8080 in use | `netstat -ano | findstr 8080` para identificar, cerrar el programa |
 | Shapefile no se lee | Verificar que .shp, .shx, .dbf, .prj están juntos |
 | Mapa en blanco | Compute from data → Compute from native bounds |
 | Caracteres raros | Cambiar Charset a UTF-8 en el Store |

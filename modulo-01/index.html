@@ -132,24 +132,40 @@
         </div>
 
         <div class="card">
-          <div class="card-title">Windows — Instalación con binario ZIP</div>
+          <div class="card-title">¿Por qué WAR + Tomcat?</div>
+          <p>GeoServer se puede instalar de dos formas: como binario ZIP (incluye un mini-servidor) o como archivo WAR que se despliega en Apache Tomcat. En este curso usamos <strong>WAR + Tomcat</strong> porque es la forma profesional — es lo que encontrarás en cualquier trabajo real, y cuando lleguemos al deploy en la nube (Módulo 7) ya sabrás exactamente cómo funciona.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Windows — Instalación WAR + Tomcat</div>
           <div class="codeblock">
             <div class="codeblock-bar"><span class="codeblock-lang">PowerShell</span><button class="codeblock-copy">Copiar</button></div>
-            <pre><span class="hl-cm"># 1. Verificar que Java está instalado</span>
+            <pre><span class="hl-cm"># ── 1. Verificar que Java está instalado ──</span>
+<span class="hl-cm"># Si no lo tienes: descargar OpenJDK 11 de https://adoptium.net/</span>
 java -version
 
-<span class="hl-cm"># 2. Descargar GeoServer desde:</span>
-<span class="hl-cm">#    https://geoserver.org/release/stable/</span>
-<span class="hl-cm">#    → "Binary (OS independent)" → descargar ZIP</span>
+<span class="hl-cm"># ── 2. Instalar Apache Tomcat 9 ──</span>
+<span class="hl-cm"># Descargar de https://tomcat.apache.org/download-90.cgi</span>
+<span class="hl-cm"># → Core → ZIP (64-bit) → descomprimir en C:\tomcat9</span>
 
-<span class="hl-cm"># 3. Descomprimir en C:\geoserver</span>
-
-<span class="hl-cm"># 4. Iniciar GeoServer</span>
-cd C:\geoserver\bin
+<span class="hl-cm"># Probar que Tomcat arranca:</span>
+cd C:\tomcat9\bin
 startup.bat
+<span class="hl-cm"># Abrir http://localhost:8080 → página de Tomcat</span>
+<span class="hl-cm"># Si funciona, detenerlo:</span>
+shutdown.bat
 
-<span class="hl-cm"># 5. Esperar ~30 segundos y abrir en el navegador:</span>
-<span class="hl-cm">#    http://localhost:8080/geoserver</span></pre>
+<span class="hl-cm"># ── 3. Desplegar GeoServer 2.28.2 WAR ──</span>
+<span class="hl-cm"># Descargar de https://geoserver.org/release/stable/</span>
+<span class="hl-cm"># → "Web Archive" → descargar geoserver.war</span>
+<span class="hl-cm"># Copiar a la carpeta webapps de Tomcat:</span>
+copy geoserver.war C:\tomcat9\webapps\
+
+<span class="hl-cm"># ── 4. Iniciar Tomcat (despliega el WAR automáticamente) ──</span>
+cd C:\tomcat9\bin
+startup.bat
+<span class="hl-cm"># Esperar ~60 segundos</span>
+<span class="hl-cm"># Abrir: http://localhost:8080/geoserver</span></pre>
           </div>
         </div>
 
@@ -157,22 +173,24 @@ startup.bat
           <div class="card-title">Linux (Ubuntu/Debian)</div>
           <div class="codeblock">
             <div class="codeblock-bar"><span class="codeblock-lang">Bash</span><button class="codeblock-copy">Copiar</button></div>
-            <pre><span class="hl-cm"># 1. Instalar Java</span>
+            <pre><span class="hl-cm"># ── 1. Instalar Java ──</span>
 sudo apt update
 sudo apt install openjdk-11-jdk -y
 java -version
 
-<span class="hl-cm"># 2. Descargar y descomprimir GeoServer</span>
-cd /opt
-sudo wget https://sourceforge.net/projects/geoserver/files/GeoServer/2.26.1/geoserver-2.26.1-bin.zip
-sudo unzip geoserver-2.26.1-bin.zip
-sudo mv geoserver-2.26.1 geoserver
+<span class="hl-cm"># ── 2. Instalar Tomcat 9 ──</span>
+sudo apt install tomcat9 tomcat9-admin -y
+sudo systemctl status tomcat9
+<span class="hl-cm"># Abrir http://localhost:8080 → página de Tomcat</span>
 
-<span class="hl-cm"># 3. Iniciar</span>
-cd /opt/geoserver/bin
-sudo ./startup.sh
+<span class="hl-cm"># ── 3. Desplegar GeoServer 2.28.2 WAR ──</span>
+cd /tmp
+wget https://sourceforge.net/projects/geoserver/files/GeoServer/2.28.2/geoserver-2.28.2-war.zip
+unzip geoserver-2.28.2-war.zip
+sudo cp geoserver.war /var/lib/tomcat9/webapps/
 
-<span class="hl-cm"># 4. Abrir: http://localhost:8080/geoserver</span></pre>
+<span class="hl-cm"># ── 4. Esperar ~60 segundos y abrir ──</span>
+<span class="hl-cm"># http://localhost:8080/geoserver</span></pre>
           </div>
         </div>
 
@@ -187,6 +205,22 @@ Contraseña:  geoserver</pre>
             <span class="callout-icon">⚠️</span>
             <div><strong>NUNCA dejes esta contraseña en producción.</strong> Cualquiera que sepa la URL de tu GeoServer podría entrar. En el Módulo 5 configuramos seguridad real.</div>
           </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Configurar memoria (recomendado)</div>
+          <p>GeoServer necesita memoria suficiente. Configura Tomcat para darle al menos 1GB:</p>
+          <p style="margin-top:8px;"><strong>Windows:</strong> Crear <code>C:\tomcat9\bin\setenv.bat</code>:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">setenv.bat</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>set CATALINA_OPTS=-Xms512m -Xmx2048m</pre>
+          </div>
+          <p style="margin-top:8px;"><strong>Linux:</strong> Crear <code>/usr/share/tomcat9/bin/setenv.sh</code>:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">setenv.sh</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>export CATALINA_OPTS="-Xms512m -Xmx2048m"</pre>
+          </div>
+          <p style="margin-top:6px; font-size:0.88rem;">Reiniciar Tomcat después de este cambio.</p>
         </div>
       </div>
 

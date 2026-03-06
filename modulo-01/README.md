@@ -56,55 +56,85 @@ GeoServer los cocina (renderiza, filtra, estiliza) y los sirve como imagen (WMS)
 
 ---
 
-## Parte 2 — Instalación de GeoServer (25 min)
+## Parte 2 — Instalación de GeoServer 2.28.2 (25 min)
+
+### ¿Por qué WAR + Tomcat y no el binario ZIP?
+
+GeoServer se distribuye de dos formas:
+- **Binario ZIP** — Incluye un mini-servidor (Jetty). Rápido para probar, pero NO es lo que se usa en producción.
+- **WAR** — Se despliega sobre Apache Tomcat, el servidor de aplicaciones Java estándar de la industria. Es lo que usan gobiernos, empresas e instituciones.
+
+En este curso usamos **WAR + Tomcat** desde el día 1 porque:
+1. Es la forma profesional — lo que encontrarás en cualquier trabajo real
+2. Cuando lleguemos al Módulo 7 (deploy en la nube), ya sabrás exactamente cómo funciona
+3. Tomcat te da mejor control sobre memoria, logs, seguridad y rendimiento
 
 ### Requisitos previos
 
-- **Java 11+** (OpenJDK o Oracle JDK)
+- **Java 11+** (OpenJDK recomendado)
+- **Apache Tomcat 9.x** (compatible con GeoServer 2.28.2)
 - Al menos 2GB RAM disponibles
-- Puerto 8080 libre
+- Puerto 8080 libre (Tomcat lo usa por defecto)
 
-### Windows — Instalación con binario ZIP
+### Windows — Instalación paso a paso
 
 ```powershell
-# 1. Verificar Java
+# ── 1. Instalar Java ──
+# Descargar OpenJDK 11 desde https://adoptium.net/
+# Ejecutar el instalador, marcar "Set JAVA_HOME" durante la instalación
+# Verificar:
 java -version
 
-# 2. Descargar GeoServer (versión estable)
-# Ir a https://geoserver.org/release/stable/
-# Descargar "Binary (OS independent)"
+# ── 2. Instalar Apache Tomcat 9 ──
+# Descargar desde https://tomcat.apache.org/download-90.cgi
+# → "Binary Distributions" → Core → ZIP (64-bit)
+# Descomprimir en C:\tomcat9
 
-# 3. Descomprimir en C:\geoserver
+# Probar que Tomcat arranca:
+cd C:\tomcat9\bin
+startup.bat
+# Abrir http://localhost:8080 → debería mostrar la página de Tomcat
+# Si funciona, detenerlo: shutdown.bat
 
-# 4. Iniciar GeoServer
-cd C:\geoserver\bin
+# ── 3. Desplegar GeoServer WAR ──
+# Descargar GeoServer 2.28.2 WAR desde:
+# https://geoserver.org/release/stable/
+# → "Web Archive" → descargar geoserver.war
+
+# Copiar el archivo geoserver.war a la carpeta webapps de Tomcat:
+copy geoserver.war C:\tomcat9\webapps\
+
+# ── 4. Iniciar Tomcat ──
+cd C:\tomcat9\bin
 startup.bat
 
-# 5. Abrir en el navegador
-# http://localhost:8080/geoserver
+# Esperar ~60 segundos (Tomcat despliega el WAR automáticamente)
+# Abrir: http://localhost:8080/geoserver
 ```
 
 ### Linux (Ubuntu/Debian)
 
 ```bash
-# 1. Instalar Java
+# ── 1. Instalar Java ──
 sudo apt update
 sudo apt install openjdk-11-jdk -y
-
-# 2. Verificar
 java -version
 
-# 3. Descargar GeoServer
-cd /opt
-sudo wget https://sourceforge.net/projects/geoserver/files/GeoServer/2.26.1/geoserver-2.26.1-bin.zip
-sudo unzip geoserver-2.26.1-bin.zip
-sudo mv geoserver-2.26.1 geoserver
+# ── 2. Instalar Tomcat 9 ──
+sudo apt install tomcat9 tomcat9-admin -y
 
-# 4. Iniciar
-cd /opt/geoserver/bin
-sudo ./startup.sh
+# Verificar que Tomcat está corriendo:
+sudo systemctl status tomcat9
+# Abrir http://localhost:8080 → página de Tomcat
 
-# 5. Abrir: http://localhost:8080/geoserver
+# ── 3. Desplegar GeoServer WAR ──
+cd /tmp
+wget https://sourceforge.net/projects/geoserver/files/GeoServer/2.28.2/geoserver-2.28.2-war.zip
+unzip geoserver-2.28.2-war.zip
+sudo cp geoserver.war /var/lib/tomcat9/webapps/
+
+# ── 4. Esperar ~60 segundos y abrir ──
+# http://localhost:8080/geoserver
 ```
 
 ### Credenciales por defecto
@@ -115,6 +145,22 @@ Contraseña: geoserver
 ```
 
 ⚠️ **CAMBIAR EN PRODUCCIÓN** — En el Módulo 5 configuramos seguridad real.
+
+### Configuración de memoria para Tomcat (recomendado)
+
+GeoServer necesita suficiente memoria. Configura Tomcat para darle al menos 1GB:
+
+**Windows:** Editar `C:\tomcat9\bin\setenv.bat` (crear si no existe):
+```bat
+set CATALINA_OPTS=-Xms512m -Xmx2048m
+```
+
+**Linux:** Crear `/usr/share/tomcat9/bin/setenv.sh`:
+```bash
+export CATALINA_OPTS="-Xms512m -Xmx2048m"
+```
+
+Reiniciar Tomcat después de este cambio.
 
 ---
 
@@ -246,9 +292,11 @@ Cambia `format=image/png` por `format=application/openlayers` para ver un visor 
 
 ## 📝 Errores comunes
 
-1. **"Port 8080 already in use"** → Otro programa usa el puerto. Cambiar en `start.ini` o cerrar el programa que usa 8080
-2. **Java no encontrado** → Verificar `java -version`. Si no funciona, reinstalar JDK y agregar al PATH
-3. **Shapefile no se lee** → Verificar que los 4 archivos están juntos (.shp, .shx, .dbf, .prj)
-4. **Capa sin proyección** → Falta el archivo .prj. Descargarlo o definir el SRS manualmente
-5. **Mapa en blanco en preview** → Verificar Bounding Box. Clic en "Compute from data" y "Compute from native bounds"
-6. **Caracteres raros en atributos** → Charset incorrecto. Cambiar a UTF-8 en el Store
+1. **"Port 8080 already in use"** → Otro programa usa el puerto. En Windows: verificar con `netstat -ano | findstr 8080`. Cerrar el programa o cambiar el puerto de Tomcat en `conf/server.xml`
+2. **Java no encontrado** → Verificar `java -version`. Reinstalar JDK y asegurar que JAVA_HOME está configurado
+3. **GeoServer no aparece en localhost:8080/geoserver** → Verificar que el WAR se desplegó: debe existir la carpeta `webapps/geoserver/`. Si no, verificar logs de Tomcat en `logs/catalina.out`
+4. **Tomcat arranca pero GeoServer da error** → Memoria insuficiente. Configurar `setenv.bat`/`setenv.sh` con al menos `-Xmx1024m`
+5. **Shapefile no se lee** → Verificar que los 4 archivos están juntos (.shp, .shx, .dbf, .prj) y que Tomcat tiene permisos de lectura
+6. **Capa sin proyección** → Falta el archivo .prj. Descargarlo o definir el SRS manualmente en GeoServer
+7. **Mapa en blanco en preview** → Verificar Bounding Box. Clic en "Compute from data" y "Compute from native bounds"
+8. **Caracteres raros en atributos** → Charset incorrecto. Cambiar a UTF-8 en la configuración del Store
