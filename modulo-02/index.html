@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Módulo 2 · Publicación de Datos — ARTECLAB</title>
+  <link rel="stylesheet" href="../css/course.css">
+  <link rel="icon" href="../img/logo-arteclab.png" type="image/png">
+</head>
+<body>
+<div class="site-wrapper">
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="../index.html" class="topbar-brand">
+        <img src="../img/logo-arteclab.png" alt="ARTECLAB">
+        <span>/</span>
+        <span class="brand-course">GeoServer</span>
+      </a>
+      <nav class="topbar-nav">
+        <a href="../index.html">Inicio</a>
+        <a href="../modulo-01/index.html">Módulo 1</a>
+        <a href="index.html" class="active">Módulo 2</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <div class="mod-header">
+      <span class="mod-chip">Módulo 2 de 7</span>
+      <h1 class="mod-title">Publicación<br>de Datos 🗄️</h1>
+      <p class="mod-desc">Publica cualquier dato geográfico en GeoServer: desde shapefiles hasta capas directamente desde PostGIS. Metadatos profesionales y grupos de capas.</p>
+      <div class="mod-stats">
+        <span class="mod-stat">📅 Clases 2 y 3</span>
+        <span class="mod-stat">⏱️ 4 horas</span>
+        <span class="mod-stat">🎯 Básico-Intermedio</span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-target="t-clase02">Clase 02 — Shapefiles</button>
+      <button class="tab-btn" data-target="t-clase03">Clase 03 — PostGIS y Grupos</button>
+      <button class="tab-btn" data-target="t-quiz2">📝 Cuestionario</button>
+    </div>
+
+    <!-- ═══ CLASE 02 ═══ -->
+    <div id="t-clase02" class="tab-panel active">
+
+      <div class="sec">
+        <h2 class="sec-heading">🎯 Objetivo</h2>
+        <p class="sec-lead">Dominar la publicación de datos vectoriales desde Shapefiles, configurar metadatos profesionales y usar Directory Store para múltiples capas.</p>
+      </div>
+
+      <div class="sec">
+        <h2 class="sec-heading">📂 Configuración Detallada de una Capa</h2>
+
+        <div class="card">
+          <div class="card-title">Más allá del mínimo — cómo lo haría un profesional</div>
+          <p>En la Clase 01 publicamos una capa con la configuración mínima. Ahora vamos a hacerlo correctamente, como lo esperaría un cliente o una institución:</p>
+
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Pestaña Data — Configuración completa</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm">Name:     paises</span>
+<span class="hl-cm">          → Nombre técnico: minúsculas, sin espacios ni tildes</span>
+<span class="hl-cm">          → Es lo que aparece en las URLs de tus servicios</span>
+
+<span class="hl-cm">Title:    Países del Mundo</span>
+<span class="hl-cm">          → Nombre legible para humanos</span>
+<span class="hl-cm">          → Es lo que ven los usuarios en QGIS al agregar WMS</span>
+
+<span class="hl-cm">Abstract: Límites de países del mundo.</span>
+<span class="hl-cm">          Fuente: Natural Earth, escala 1:110m, 2024.</span>
+<span class="hl-cm">          Sistema de referencia: EPSG:4326 (WGS84).</span>
+<span class="hl-cm">          → Descripción técnica con fuente y fecha</span>
+
+<span class="hl-cm">Keywords: paises, limites, administrativo, natural-earth</span>
+<span class="hl-cm">          → Ayudan a encontrar la capa en catálogos</span>
+
+<span class="hl-cm">SRS:      EPSG:4326</span>
+<span class="hl-cm">Bounding Box: → "Compute from data" → "Compute from native bounds"</span></pre>
+          </div>
+
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div><strong>Regla de oro de los metadatos:</strong> Si mañana alguien ve tu servicio WMS sin poder preguntarte nada, ¿entendería qué datos tiene y de dónde vienen? Si no, tus metadatos son insuficientes.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Reproyección al vuelo</div>
+          <p>Tu shapefile puede estar en una proyección diferente a la que quieres servir. GeoServer puede reproyectar automáticamente:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Configuración SRS</span></div>
+            <pre><span class="hl-cm">SRS nativo:     EPSG:32719  (UTM zona 19S — como está el archivo)</span>
+<span class="hl-cm">SRS declarado:  EPSG:4326   (WGS84 — como quieres servirlo)</span>
+<span class="hl-cm">Acción:         Reproject native to declared</span>
+<span class="hl-cm">→ GeoServer reproyecta al vuelo sin modificar el archivo original</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h2 class="sec-heading">📁 Directory Store — Muchos shapefiles de una vez</h2>
+
+        <div class="card">
+          <div class="card-title">¿Qué es un Directory Store?</div>
+          <p>En vez de crear un Store por cada shapefile, apuntas a una <strong>carpeta entera</strong>. GeoServer detecta todos los shapefiles y te permite publicar cada uno:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Stores → Add new Store → Directory of spatial files</span></div>
+            <pre><span class="hl-cm">Workspace:  mi_proyecto</span>
+<span class="hl-cm">Store name: natural_earth_data</span>
+<span class="hl-cm">URL:        file:///C:/geodatos/natural_earth/</span>
+<span class="hl-cm">Charset:    UTF-8</span></pre>
+          </div>
+          <div class="callout callout--info">
+            <span class="callout-icon">💡</span>
+            <div><strong>Ventaja:</strong> Si después agregas un nuevo shapefile a la carpeta, solo tienes que ir a Layers → Add new layer → seleccionar el Store → y publicar. No necesitas crear un Store nuevo.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h2 class="sec-heading">⚠️ Limitaciones del Shapefile</h2>
+
+        <div class="card">
+          <div class="card-title">Lo que debes saber antes de usarlos en producción</div>
+          <div class="glossary">
+            <div class="glossary-item"><span class="glossary-term">Campos max 10 chars</span><span class="glossary-def"><code>superficie_km2</code> se trunca a <code>superfici</code>. Pierdes contexto en los nombres.</span></div>
+            <div class="glossary-item"><span class="glossary-term">Sin valores nulos</span><span class="glossary-def">Campos vacíos se llenan con 0 o espacios en blanco. No puedes distinguir "sin dato" de "cero".</span></div>
+            <div class="glossary-item"><span class="glossary-term">Una geometría por archivo</span><span class="glossary-def">No puedes mezclar puntos y polígonos en el mismo shapefile.</span></div>
+            <div class="glossary-item"><span class="glossary-term">Tamaño max ~2 GB</span><span class="glossary-def">Para datos grandes (millones de registros), el shapefile no alcanza.</span></div>
+            <div class="glossary-item"><span class="glossary-term">Encoding frágil</span><span class="glossary-def">Tildes y caracteres especiales se corrompen si el charset no es UTF-8.</span></div>
+          </div>
+
+          <div class="callout callout--warn">
+            <span class="callout-icon">⚠️</span>
+            <div><strong>El shapefile es un formato de los años 90.</strong> Para proyectos nuevos usa PostGIS o GeoPackage. Pero vas a encontrar shapefiles en TODOS los proyectos existentes — saber publicarlos es obligatorio.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h2 class="sec-heading">🔍 Verificar con GetCapabilities</h2>
+        <div class="card">
+          <div class="card-title">Ver tus metadatos como los ve el mundo</div>
+          <p>GetCapabilities es la petición WMS que devuelve el catálogo completo de tu servidor. Pega esta URL en el navegador:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">URL</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>http://localhost:8080/geoserver/mi_proyecto/wms?service=WMS&version=1.1.1&request=GetCapabilities</pre>
+          </div>
+          <p style="margin-top:8px;">Busca tus capas en el XML. Deberías ver el Title, Abstract y Keywords que configuraste. Eso es lo que lee QGIS cuando un usuario agrega tu servicio WMS.</p>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h2 class="sec-heading">📖 Glosario — Clase 02</h2>
+        <div class="glossary">
+          <div class="glossary-item"><span class="glossary-term">Directory Store</span><span class="glossary-def">Store que apunta a una carpeta de shapefiles. Detecta y permite publicar todos los archivos.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Name vs Title</span><span class="glossary-def">Name = técnico (para URLs). Title = legible (para humanos). Siempre configura ambos.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Abstract</span><span class="glossary-def">Descripción de la capa: qué contiene, fuente, fecha, sistema de referencia.</span></div>
+          <div class="glossary-item"><span class="glossary-term">GetCapabilities</span><span class="glossary-def">Petición WMS que devuelve el catálogo completo del servidor con todas las capas y metadatos.</span></div>
+          <div class="glossary-item"><span class="glossary-term">SRS nativo</span><span class="glossary-def">El sistema de coordenadas original del dato (como está almacenado).</span></div>
+          <div class="glossary-item"><span class="glossary-term">SRS declarado</span><span class="glossary-def">El sistema de coordenadas en que GeoServer sirve el dato (como lo ve el cliente).</span></div>
+          <div class="glossary-item"><span class="glossary-term">Reproject</span><span class="glossary-def">Transformar coordenadas de un sistema a otro. GeoServer lo hace al vuelo.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Charset/Encoding</span><span class="glossary-def">Codificación de caracteres. Usar UTF-8 para soportar tildes, ñ, etc.</span></div>
+        </div>
+      </div>
+
+      <div class="practice">
+        <span class="practice-chip">💻 Práctica 02</span>
+        <div class="practice-title">Publicación Profesional con Metadatos</div>
+        <ol class="practice-steps">
+          <li>Descarga al menos 3 shapefiles de <a href="https://www.naturalearthdata.com/downloads/" target="_blank">Natural Earth</a>: países, ríos y lagos (o los que prefieras).</li>
+          <li>Crea un <strong>Directory Store</strong> apuntando a la carpeta donde los descomprimiste.</li>
+          <li>Publica las 3 capas con <strong>metadatos completos:</strong> nombre técnico, título legible, abstract con fuente y fecha, keywords.</li>
+          <li>Verifica cada capa en <strong>Layer Preview</strong>.</li>
+          <li>Prueba la URL <strong>GetCapabilities</strong> y busca tus metadatos en el XML.</li>
+        </ol>
+      </div>
+
+      <div class="sec">
+        <h2 class="sec-heading">✅ Checklist — Clase 02</h2>
+        <ul class="checklist">
+          <li><span class="ck-box"></span> Directory Store creado con múltiples shapefiles</li>
+          <li><span class="ck-box"></span> Al menos 3 capas publicadas</li>
+          <li><span class="ck-box"></span> Metadatos completos en cada capa</li>
+          <li><span class="ck-box"></span> SRS y Bounding Box configurados</li>
+          <li><span class="ck-box"></span> GetCapabilities devuelve XML con mis capas</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ═══ CLASE 03 ═══ -->
+    <div id="t-clase03" class="tab-panel">
+
+      <div class="sec">
+        <h2 class="sec-heading">🎯 Objetivo</h2>
+        <p class="sec-lead">Conectar GeoServer a una base de datos PostGIS, publicar capas desde tablas, crear vistas SQL dinámicas y organizar todo en grupos de capas.</p>
+      </div>
+
+      <div class="sec">
+        <h2 class="sec-heading">🐘 ¿Por qué PostGIS?</h2>
+
+        <div class="card">
+          <div class="card-title">Shapefile vs PostGIS — cuándo usar cada uno</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:14px 0;">
+            <div style="background:rgba(245,158,11,0.08); padding:16px; border-radius:var(--radius-sm);">
+              <strong style="color:var(--amber-500);">Shapefile</strong><br>
+              <span style="font-size:0.85rem;">Campos max 10 chars, ~2 GB max, sin SQL, una geometría por archivo, sin edición concurrente. Bueno para datos estáticos simples.</span>
+            </div>
+            <div style="background:var(--teal-glow); padding:16px; border-radius:var(--radius-sm);">
+              <strong style="color:var(--teal-400);">PostGIS</strong><br>
+              <span style="font-size:0.85rem;">Sin límite de campos, sin límite de tamaño, SQL completo, vistas dinámicas, edición concurrente, índices espaciales eficientes.</span>
+            </div>
+          </div>
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div><strong>Regla práctica:</strong> Para datos estáticos simples → Shapefile. Para cualquier otra cosa → PostGIS. En producción real, PostGIS es casi siempre la mejor opción.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h2 class="sec-heading">🔧 Preparar PostGIS</h2>
+
+        <div class="card">
+          <div class="card-title">Crear la base de datos</div>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">SQL — psql o PgAdmin</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm">-- Crear base de datos</span>
+<span class="hl-kw">CREATE DATABASE</span> geoserver_curso;
+
+<span class="hl-cm">-- Conectar</span>
+\c geoserver_curso
+
+<span class="hl-cm">-- Activar extensión PostGIS</span>
+<span class="hl-kw">CREATE EXTENSION</span> postgis;
+
+<span class="hl-cm">-- Verificar</span>
+<span class="hl-kw">SELECT</span> <span class="hl-fn">PostGIS_Version</span>();</pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Importar shapefiles a PostGIS</div>
+          <p><strong>Opción A — Línea de comandos (shp2pgsql):</strong></p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Bash</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>shp2pgsql -s 4326 -I ne_110m_admin_0_countries.shp public.paises | psql -d geoserver_curso</pre>
+          </div>
+          <p style="margin-top:12px;"><strong>Opción B — Desde QGIS:</strong></p>
+          <p style="font-size:0.88rem;">Capa → Clic derecho → Exportar → Guardar como → Formato: PostgreSQL → tu conexión → nombre de tabla.</p>
+
+          <div class="callout callout--info">
+            <span class="callout-icon">💡</span>
+            <div>El flag <code>-I</code> en shp2pgsql crea un <strong>índice espacial</strong> automáticamente. Sin índice, las consultas WMS serán mucho más lentas. Siempre usa <code>-I</code>.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h2 class="sec-heading">🔌 Conectar GeoServer a PostGIS</h2>
+
+        <div class="card">
+          <div class="card-title">Crear Store tipo PostGIS</div>
+          <p>Menú lateral → <strong>Stores</strong> → <strong>Add new Store</strong> → <strong>PostGIS</strong></p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Configuración</span></div>
+            <pre><span class="hl-cm">Workspace:  mi_proyecto</span>
+<span class="hl-cm">Store name: postgis_datos</span>
+
+<span class="hl-cm">Connection Parameters:</span>
+<span class="hl-cm">  host:     localhost</span>
+<span class="hl-cm">  port:     5432</span>
+<span class="hl-cm">  database: geoserver_curso</span>
+<span class="hl-cm">  schema:   public</span>
+<span class="hl-cm">  user:     postgres</span>
+<span class="hl-cm">  passwd:   tu_contraseña</span>
+
+<span class="hl-cm">  Validate connections: ✓</span></pre>
+          </div>
+          <div class="callout callout--danger">
+            <span class="callout-icon">⚠️</span>
+            <div><strong>Si falla la conexión:</strong> Antes de buscar el error en GeoServer, verifica que puedes conectarte a la base desde <code>psql</code> o PgAdmin. Si no funciona ahí, no va a funcionar en GeoServer. Causas comunes: PostgreSQL no está corriendo, contraseña incorrecta, o <code>pg_hba.conf</code> no permite conexiones locales.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h2 class="sec-heading">🔮 Vistas SQL — Capas dinámicas sin crear tablas</h2>
+
+        <div class="card">
+          <div class="card-title">¿Qué es una Vista SQL?</div>
+          <p>Una Vista SQL es una capa que <strong>no existe como tabla</strong> — se genera al vuelo ejecutando una consulta SQL cada vez que alguien la pide. Es una de las funcionalidades más potentes de GeoServer + PostGIS.</p>
+
+          <p style="margin-top:12px;">Menú lateral → <strong>Layers</strong> → <strong>Add new layer</strong> → seleccionar tu Store PostGIS → <strong>"Configure new SQL view..."</strong></p>
+
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">SQL — Ejemplo: países con más de 50 millones de habitantes</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-kw">SELECT</span>
+  gid,
+  name,
+  continent,
+  pop_est,
+  gdp_md_est,
+  geom
+<span class="hl-kw">FROM</span> paises
+<span class="hl-kw">WHERE</span> pop_est > <span class="hl-nm">50000000</span>
+<span class="hl-kw">ORDER BY</span> pop_est <span class="hl-kw">DESC</span></pre>
+          </div>
+
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div><strong>¿Por qué es tan potente?</strong> Si mañana un país supera los 50 millones de habitantes en tu base de datos, aparece automáticamente en esta capa. No necesitas tocar GeoServer — la consulta SQL se ejecuta en cada petición.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h2 class="sec-heading">📦 Grupos de Capas (Layer Groups)</h2>
+
+        <div class="card">
+          <div class="card-title">Un grupo = una URL, múltiples capas</div>
+          <p>Un Layer Group agrupa varias capas en un solo servicio WMS. El cliente pide una URL y recibe todas las capas superpuestas.</p>
+
+          <p style="margin-top:12px;">Menú lateral → <strong>Layer Groups</strong> → <strong>Add new layer group</strong></p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Configuración</span></div>
+            <pre><span class="hl-cm">Name:    mapa_base_mundial</span>
+<span class="hl-cm">Title:   Mapa Base Mundial</span>
+
+<span class="hl-cm">Capas (orden de abajo hacia arriba):</span>
+<span class="hl-cm">  1. paises        (fondo — se dibuja primero)</span>
+<span class="hl-cm">  2. rios           (encima)</span>
+<span class="hl-cm">  3. lagos          (encima)</span>
+<span class="hl-cm">  4. ciudades       (arriba de todo — puntos visibles)</span></pre>
+          </div>
+          <div class="callout callout--info">
+            <span class="callout-icon">💡</span>
+            <div><strong>El orden importa.</strong> Lo que está primero en la lista se dibuja primero (queda abajo). Los puntos (ciudades) deben ir al final para que se vean sobre los polígonos.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h2 class="sec-heading">📖 Glosario — Clase 03</h2>
+        <div class="glossary">
+          <div class="glossary-item"><span class="glossary-term">PostGIS</span><span class="glossary-def">Extensión de PostgreSQL que agrega soporte para datos geográficos. La base de datos espacial más usada del mundo.</span></div>
+          <div class="glossary-item"><span class="glossary-term">shp2pgsql</span><span class="glossary-def">Herramienta que convierte un shapefile a comandos SQL para importar a PostGIS.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Índice espacial</span><span class="glossary-def">Estructura que acelera las consultas geográficas. Sin índice, las consultas WMS son 10-100x más lentas.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Vista SQL</span><span class="glossary-def">Capa virtual que se genera al vuelo desde una consulta SQL. No existe como tabla — es dinámica.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Layer Group</span><span class="glossary-def">Agrupación de capas en un solo servicio. El cliente pide una URL y recibe todas las capas superpuestas.</span></div>
+          <div class="glossary-item"><span class="glossary-term">pg_hba.conf</span><span class="glossary-def">Archivo de PostgreSQL que controla quién puede conectarse. Si GeoServer no conecta, este archivo suele ser la causa.</span></div>
+          <div class="glossary-item"><span class="glossary-term">schema</span><span class="glossary-def">Espacio de nombres dentro de PostgreSQL. Por defecto es <code>public</code>. Organiza tablas dentro de la base.</span></div>
+        </div>
+      </div>
+
+      <div class="practice">
+        <span class="practice-chip">💻 Práctica 03</span>
+        <div class="practice-title">PostGIS y Grupos de Capas</div>
+        <ol class="practice-steps">
+          <li>Crea la base de datos <code>geoserver_curso</code> con la extensión PostGIS activada.</li>
+          <li>Importa al menos 2 shapefiles de Natural Earth a PostGIS (con shp2pgsql o desde QGIS).</li>
+          <li>Crea un <strong>Store PostGIS</strong> en GeoServer y conecta a la base.</li>
+          <li>Publica al menos 2 capas desde las tablas de PostGIS.</li>
+          <li>Crea una <strong>Vista SQL</strong> que filtre datos (ej: solo países de un continente o con población mayor a X).</li>
+          <li>Crea un <strong>Layer Group</strong> que combine 3+ capas con orden lógico.</li>
+          <li>Verifica el Layer Group en Layer Preview.</li>
+        </ol>
+      </div>
+
+      <div class="challenge">
+        <span class="challenge-chip">🚀 Reto Extra — Vista SQL con JOIN</span>
+        <div class="card-title" style="color:var(--text-primary); margin-bottom:8px;">Combinar datos de dos tablas</div>
+        <p style="font-size:0.9rem;">Si tienes dos tablas en PostGIS (ej: <code>paises</code> con geometría y <code>indicadores</code> con datos económicos), crea una Vista SQL que haga JOIN entre ambas y publique la capa combinada.</p>
+      </div>
+
+      <div class="sec">
+        <h2 class="sec-heading">✅ Checklist — Clase 03</h2>
+        <ul class="checklist">
+          <li><span class="ck-box"></span> PostGIS funcionando con datos importados</li>
+          <li><span class="ck-box"></span> Store PostGIS conectado en GeoServer</li>
+          <li><span class="ck-box"></span> Capas publicadas desde tablas PostGIS</li>
+          <li><span class="ck-box"></span> Al menos una Vista SQL funcional</li>
+          <li><span class="ck-box"></span> Layer Group creado con 3+ capas</li>
+          <li><span class="ck-box"></span> Layer Group visible en Layer Preview</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ═══ CUESTIONARIO ═══ -->
+    <div id="t-quiz2" class="tab-panel">
+      <div class="sec">
+        <h2 class="sec-heading">📝 Autoevaluación — Módulo 2</h2>
+        <p class="sec-lead">Verifica tu comprensión de publicación de datos, PostGIS y grupos de capas.</p>
+      </div>
+
+      <div class="quiz">
+        <div class="quiz-heading">🧠 Cuestionario — 8 preguntas</div>
+
+        <div class="quiz-q" data-qi="1" data-ans="b" data-explain="Un Directory Store apunta a una carpeta y detecta todos los shapefiles automáticamente.">
+          <p class="quiz-q-text"><span class="quiz-q-num">1.</span> ¿Qué ventaja tiene un Directory Store sobre crear un Store por cada shapefile?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Es más rápido al renderizar</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Detecta todos los shapefiles de una carpeta automáticamente</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Permite editar los datos</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> No hay ventaja, es lo mismo</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="2" data-ans="c" data-explain="Los nombres de campo en shapefiles se truncan a 10 caracteres.">
+          <p class="quiz-q-text"><span class="quiz-q-num">2.</span> ¿Cuál es la limitación más conocida del formato Shapefile?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> No soporta polígonos</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Solo funciona en Windows</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Nombres de campo máximo 10 caracteres</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> No soporta coordenadas geográficas</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="3" data-ans="a" data-explain="Title es legible para humanos. Name es técnico y aparece en las URLs.">
+          <p class="quiz-q-text"><span class="quiz-q-num">3.</span> ¿Cuál es la diferencia entre Name y Title de una capa?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Name es técnico (URLs), Title es legible (para humanos)</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Son lo mismo</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Title es para el administrador, Name para el usuario</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Name es opcional, Title es obligatorio</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="4" data-ans="d" data-explain="PostGIS permite SQL completo, campos sin límite, actualizaciones en vivo, edición concurrente y vistas SQL.">
+          <p class="quiz-q-text"><span class="quiz-q-num">4.</span> ¿Cuál es la principal ventaja de PostGIS sobre Shapefiles?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Es más fácil de instalar</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Los mapas se ven más bonitos</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> No necesita Java</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> SQL completo, sin límites de campos, vistas dinámicas</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="5" data-ans="b" data-explain="Una Vista SQL es una capa virtual que se genera al vuelo desde una consulta SQL.">
+          <p class="quiz-q-text"><span class="quiz-q-num">5.</span> ¿Qué es una Vista SQL en GeoServer?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Una tabla duplicada en la base de datos</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Una capa virtual generada al vuelo desde una consulta SQL</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Un estilo visual para la capa</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Un backup de la tabla original</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="6" data-ans="c" data-explain="El índice espacial (GiST) acelera las consultas geográficas 10-100x.">
+          <p class="quiz-q-text"><span class="quiz-q-num">6.</span> ¿Por qué es importante crear un índice espacial en PostGIS?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Para que los datos se vean más bonitos</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Para poder editar los datos</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Para que las consultas WMS sean mucho más rápidas</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> No es importante, es opcional</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="7" data-ans="a" data-explain="El último de la lista se dibuja encima de todos. Los puntos deben ir al final.">
+          <p class="quiz-q-text"><span class="quiz-q-num">7.</span> En un Layer Group, ¿qué capa se dibuja ENCIMA de todas?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> La última de la lista</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> La primera de la lista</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> La que tiene más datos</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> El orden no importa</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="8" data-ans="d" data-explain="GetCapabilities devuelve el catálogo completo del servidor con todas las capas y metadatos.">
+          <p class="quiz-q-text"><span class="quiz-q-num">8.</span> ¿Qué petición WMS usas para ver todos los metadatos de todas las capas publicadas?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> GetMap</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> GetFeatureInfo</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> GetLegendGraphic</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> GetCapabilities</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <button class="quiz-submit">Verificar Respuestas</button>
+        <div class="quiz-result"></div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <a href="../modulo-01/index.html" class="btn-nav btn-prev">← Módulo 1</a>
+      <a href="../modulo-03/index.html" class="btn-nav btn-next">Módulo 3 — Simbología SLD →</a>
+    </div>
+
+  </main>
+</div>
+<script src="../js/course.js"></script>
+</body>
+</html>
