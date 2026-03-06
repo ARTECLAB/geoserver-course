@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Módulo 3 · Simbología SLD — ARTECLAB</title>
+  <link rel="stylesheet" href="../css/course.css">
+  <link rel="icon" href="../img/logo-arteclab.png" type="image/png">
+</head>
+<body>
+<div class="site-wrapper">
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="../index.html" class="topbar-brand">
+        <img src="../img/logo-arteclab.png" alt="ARTECLAB">
+        <span>/</span>
+        <span class="brand-course">GeoServer</span>
+      </a>
+      <nav class="topbar-nav">
+        <a href="../index.html">Inicio</a>
+        <a href="../modulo-02/index.html">Módulo 2</a>
+        <a href="index.html" class="active">Módulo 3</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <div class="mod-header">
+      <span class="mod-chip">Módulo 3 de 7</span>
+      <h1 class="mod-title">Simbología &<br>Estilos SLD 🎨</h1>
+      <p class="mod-desc">Tus mapas dejan de verse genéricos. Colores por categoría, grosores proporcionales, etiquetas inteligentes y reglas basadas en atributos.</p>
+      <div class="mod-stats">
+        <span class="mod-stat">📅 Clase 4</span>
+        <span class="mod-stat">⏱️ 2 horas</span>
+        <span class="mod-stat">🎯 Intermedio</span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-target="t-clase04">Clase 04 — Estilos SLD</button>
+      <button class="tab-btn" data-target="t-quiz3">📝 Cuestionario</button>
+    </div>
+
+    <!-- ═══ CLASE 04 ═══ -->
+    <div id="t-clase04" class="tab-panel active">
+
+      <div class="sec">
+        <h2 class="sec-heading">🎯 Objetivo</h2>
+        <p class="sec-lead">Diseñar estilos profesionales con SLD para polígonos, líneas y puntos. Clasificación temática, etiquetas con halo y control por escala.</p>
+      </div>
+
+      <!-- ── Qué es SLD ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🎨 ¿Qué es SLD?</h2>
+
+        <div class="card">
+          <div class="card-title">El lenguaje para diseñar mapas en GeoServer</div>
+          <p>SLD (Styled Layer Descriptor) es el estándar OGC para definir cómo se visualizan los datos geográficos. Es un archivo XML que le dice a GeoServer exactamente cómo dibujar cada feature: colores, grosores, tamaños, etiquetas y reglas condicionales.</p>
+
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div><strong>Analogía con QGIS:</strong> En QGIS cambias la simbología desde Propiedades → Simbología, eligiendo colores y clasificaciones con clics. SLD es lo mismo pero escrito como XML. La ventaja: es portátil, versionable y se aplica del lado del servidor.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Dónde se edita un SLD</div>
+          <p>En GeoServer: menú lateral → <strong>Styles</strong> → <strong>Add a new style</strong> (o editar uno existente). El editor tiene validación, vista previa de leyenda y formato automático.</p>
+          <p style="margin-top:8px;">El ciclo de trabajo es: <strong>editar → validar → previsualizar leyenda → guardar → verificar en Layer Preview</strong>.</p>
+        </div>
+      </div>
+
+      <!-- ── Estructura ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🏗️ Estructura de un SLD</h2>
+
+        <div class="card">
+          <div class="card-title">La plantilla base — copia esto y solo cambia las Rules</div>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">XML — Plantilla SLD</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+&lt;<span class="hl-kw">StyledLayerDescriptor</span> version=<span class="hl-st">"1.0.0"</span>
+  xmlns=<span class="hl-st">"http://www.opengis.net/sld"</span>
+  xmlns:ogc=<span class="hl-st">"http://www.opengis.net/ogc"</span>
+  xmlns:xlink=<span class="hl-st">"http://www.w3.org/1999/xlink"</span>
+  xmlns:xsi=<span class="hl-st">"http://www.w3.org/2001/XMLSchema-instance"</span>&gt;
+
+  &lt;<span class="hl-kw">NamedLayer</span>&gt;
+    &lt;<span class="hl-tp">Name</span>&gt;mi_estilo&lt;/<span class="hl-tp">Name</span>&gt;
+    &lt;<span class="hl-kw">UserStyle</span>&gt;
+      &lt;<span class="hl-tp">Title</span>&gt;Mi Estilo&lt;/<span class="hl-tp">Title</span>&gt;
+      &lt;<span class="hl-kw">FeatureTypeStyle</span>&gt;
+
+        <span class="hl-cm">&lt;!-- ═══ TUS REGLAS AQUÍ ═══ --&gt;</span>
+
+      &lt;/<span class="hl-kw">FeatureTypeStyle</span>&gt;
+    &lt;/<span class="hl-kw">UserStyle</span>&gt;
+  &lt;/<span class="hl-kw">NamedLayer</span>&gt;
+&lt;/<span class="hl-kw">StyledLayerDescriptor</span>&gt;</pre>
+          </div>
+          <div class="callout callout--info">
+            <span class="callout-icon">💡</span>
+            <div>Este envoltorio siempre es igual. <strong>No lo memorices — cópialo.</strong> Lo que importa es lo que va dentro de <code>&lt;FeatureTypeStyle&gt;</code>: las reglas y simbolizadores.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">La jerarquía SLD simplificada</div>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Estructura</span></div>
+            <pre>StyledLayerDescriptor     <span class="hl-cm">← Contenedor (siempre igual)</span>
+  └── NamedLayer           <span class="hl-cm">← Nombre del estilo</span>
+       └── UserStyle       <span class="hl-cm">← Tu estilo personalizado</span>
+            └── FeatureTypeStyle  <span class="hl-cm">← Grupo de reglas</span>
+                 └── Rule         <span class="hl-cm">← UNA regla: "si cumple X, dibuja Y"</span>
+                      ├── Filter       <span class="hl-cm">← Condición (opcional)</span>
+                      └── Symbolizer   <span class="hl-cm">← Cómo dibujar</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Polígonos ── -->
+      <div class="sec">
+        <h2 class="sec-heading">⬡ Estilos para Polígonos</h2>
+
+        <div class="card">
+          <div class="card-title">Polígono simple — Un color para todos</div>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">XML — Dentro de FeatureTypeStyle</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>&lt;<span class="hl-kw">Rule</span>&gt;
+  &lt;<span class="hl-tp">Name</span>&gt;paises&lt;/<span class="hl-tp">Name</span>&gt;
+  &lt;<span class="hl-tp">Title</span>&gt;Países&lt;/<span class="hl-tp">Title</span>&gt;
+  &lt;<span class="hl-kw">PolygonSymbolizer</span>&gt;
+    &lt;<span class="hl-kw">Fill</span>&gt;
+      &lt;CssParameter name=<span class="hl-st">"fill"</span>&gt;<span class="hl-nm">#2d8659</span>&lt;/CssParameter&gt;
+      &lt;CssParameter name=<span class="hl-st">"fill-opacity"</span>&gt;<span class="hl-nm">0.6</span>&lt;/CssParameter&gt;
+    &lt;/<span class="hl-kw">Fill</span>&gt;
+    &lt;<span class="hl-kw">Stroke</span>&gt;
+      &lt;CssParameter name=<span class="hl-st">"stroke"</span>&gt;<span class="hl-nm">#1a5c3a</span>&lt;/CssParameter&gt;
+      &lt;CssParameter name=<span class="hl-st">"stroke-width"</span>&gt;<span class="hl-nm">1</span>&lt;/CssParameter&gt;
+    &lt;/<span class="hl-kw">Stroke</span>&gt;
+  &lt;/<span class="hl-kw">PolygonSymbolizer</span>&gt;
+&lt;/<span class="hl-kw">Rule</span>&gt;</pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Clasificación por rango — Coroplético de población</div>
+          <p>Colores diferentes según un valor numérico. Es lo que en QGIS se llama simbología "Graduada":</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">XML — Ejemplo: 3 rangos de población</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm">&lt;!-- Población alta --&gt;</span>
+&lt;<span class="hl-kw">Rule</span>&gt;
+  &lt;<span class="hl-tp">Title</span>&gt;Población &gt; 50 millones&lt;/<span class="hl-tp">Title</span>&gt;
+  &lt;ogc:<span class="hl-kw">Filter</span>&gt;
+    &lt;ogc:<span class="hl-fn">PropertyIsGreaterThan</span>&gt;
+      &lt;ogc:PropertyName&gt;<span class="hl-tp">pop_est</span>&lt;/ogc:PropertyName&gt;
+      &lt;ogc:Literal&gt;<span class="hl-nm">50000000</span>&lt;/ogc:Literal&gt;
+    &lt;/ogc:<span class="hl-fn">PropertyIsGreaterThan</span>&gt;
+  &lt;/ogc:<span class="hl-kw">Filter</span>&gt;
+  &lt;<span class="hl-kw">PolygonSymbolizer</span>&gt;
+    &lt;Fill&gt;&lt;CssParameter name=<span class="hl-st">"fill"</span>&gt;<span class="hl-nm">#dc2626</span>&lt;/CssParameter&gt;&lt;/Fill&gt;
+    &lt;Stroke&gt;&lt;CssParameter name=<span class="hl-st">"stroke"</span>&gt;<span class="hl-nm">#7f1d1d</span>&lt;/CssParameter&gt;&lt;/Stroke&gt;
+  &lt;/<span class="hl-kw">PolygonSymbolizer</span>&gt;
+&lt;/<span class="hl-kw">Rule</span>&gt;
+
+<span class="hl-cm">&lt;!-- Población media --&gt;</span>
+&lt;<span class="hl-kw">Rule</span>&gt;
+  &lt;<span class="hl-tp">Title</span>&gt;Población 10 - 50 millones&lt;/<span class="hl-tp">Title</span>&gt;
+  &lt;ogc:<span class="hl-kw">Filter</span>&gt;
+    &lt;ogc:<span class="hl-fn">And</span>&gt;
+      &lt;ogc:PropertyIsGreaterThanOrEqualTo&gt;
+        &lt;ogc:PropertyName&gt;<span class="hl-tp">pop_est</span>&lt;/ogc:PropertyName&gt;
+        &lt;ogc:Literal&gt;<span class="hl-nm">10000000</span>&lt;/ogc:Literal&gt;
+      &lt;/ogc:PropertyIsGreaterThanOrEqualTo&gt;
+      &lt;ogc:PropertyIsLessThanOrEqualTo&gt;
+        &lt;ogc:PropertyName&gt;<span class="hl-tp">pop_est</span>&lt;/ogc:PropertyName&gt;
+        &lt;ogc:Literal&gt;<span class="hl-nm">50000000</span>&lt;/ogc:Literal&gt;
+      &lt;/ogc:PropertyIsLessThanOrEqualTo&gt;
+    &lt;/ogc:<span class="hl-fn">And</span>&gt;
+  &lt;/ogc:<span class="hl-kw">Filter</span>&gt;
+  &lt;<span class="hl-kw">PolygonSymbolizer</span>&gt;
+    &lt;Fill&gt;&lt;CssParameter name=<span class="hl-st">"fill"</span>&gt;<span class="hl-nm">#f59e0b</span>&lt;/CssParameter&gt;&lt;/Fill&gt;
+    &lt;Stroke&gt;&lt;CssParameter name=<span class="hl-st">"stroke"</span>&gt;<span class="hl-nm">#92400e</span>&lt;/CssParameter&gt;&lt;/Stroke&gt;
+  &lt;/<span class="hl-kw">PolygonSymbolizer</span>&gt;
+&lt;/<span class="hl-kw">Rule</span>&gt;
+
+<span class="hl-cm">&lt;!-- Población baja (el resto) --&gt;</span>
+&lt;<span class="hl-kw">Rule</span>&gt;
+  &lt;<span class="hl-tp">Title</span>&gt;Población &lt; 10 millones&lt;/<span class="hl-tp">Title</span>&gt;
+  &lt;<span class="hl-kw">ElseFilter</span>/&gt;
+  &lt;<span class="hl-kw">PolygonSymbolizer</span>&gt;
+    &lt;Fill&gt;&lt;CssParameter name=<span class="hl-st">"fill"</span>&gt;<span class="hl-nm">#22c55e</span>&lt;/CssParameter&gt;&lt;/Fill&gt;
+    &lt;Stroke&gt;&lt;CssParameter name=<span class="hl-st">"stroke"</span>&gt;<span class="hl-nm">#166534</span>&lt;/CssParameter&gt;&lt;/Stroke&gt;
+  &lt;/<span class="hl-kw">PolygonSymbolizer</span>&gt;
+&lt;/<span class="hl-kw">Rule</span>&gt;</pre>
+          </div>
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div><strong>ElseFilter</strong> captura todo lo que no coincidió con las reglas anteriores. Es el "todos los demás". Siempre ponla como última regla.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Líneas ── -->
+      <div class="sec">
+        <h2 class="sec-heading">〰️ Estilos para Líneas</h2>
+
+        <div class="card">
+          <div class="card-title">Ríos con grosor por importancia</div>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">XML — LineSymbolizer</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm">&lt;!-- Ríos principales --&gt;</span>
+&lt;<span class="hl-kw">Rule</span>&gt;
+  &lt;<span class="hl-tp">Title</span>&gt;Ríos principales&lt;/<span class="hl-tp">Title</span>&gt;
+  &lt;ogc:<span class="hl-kw">Filter</span>&gt;
+    &lt;ogc:PropertyIsEqualTo&gt;
+      &lt;ogc:PropertyName&gt;<span class="hl-tp">scalerank</span>&lt;/ogc:PropertyName&gt;
+      &lt;ogc:Literal&gt;<span class="hl-nm">1</span>&lt;/ogc:Literal&gt;
+    &lt;/ogc:PropertyIsEqualTo&gt;
+  &lt;/ogc:<span class="hl-kw">Filter</span>&gt;
+  &lt;<span class="hl-kw">LineSymbolizer</span>&gt;
+    &lt;Stroke&gt;
+      &lt;CssParameter name=<span class="hl-st">"stroke"</span>&gt;<span class="hl-nm">#3b82f6</span>&lt;/CssParameter&gt;
+      &lt;CssParameter name=<span class="hl-st">"stroke-width"</span>&gt;<span class="hl-nm">3</span>&lt;/CssParameter&gt;
+      &lt;CssParameter name=<span class="hl-st">"stroke-linecap"</span>&gt;round&lt;/CssParameter&gt;
+    &lt;/Stroke&gt;
+  &lt;/<span class="hl-kw">LineSymbolizer</span>&gt;
+&lt;/<span class="hl-kw">Rule</span>&gt;
+
+<span class="hl-cm">&lt;!-- Ríos menores (línea punteada) --&gt;</span>
+&lt;<span class="hl-kw">Rule</span>&gt;
+  &lt;<span class="hl-tp">Title</span>&gt;Ríos menores&lt;/<span class="hl-tp">Title</span>&gt;
+  &lt;<span class="hl-kw">ElseFilter</span>/&gt;
+  &lt;<span class="hl-kw">LineSymbolizer</span>&gt;
+    &lt;Stroke&gt;
+      &lt;CssParameter name=<span class="hl-st">"stroke"</span>&gt;<span class="hl-nm">#93c5fd</span>&lt;/CssParameter&gt;
+      &lt;CssParameter name=<span class="hl-st">"stroke-width"</span>&gt;<span class="hl-nm">1</span>&lt;/CssParameter&gt;
+      &lt;CssParameter name=<span class="hl-st">"stroke-dasharray"</span>&gt;4 3&lt;/CssParameter&gt;
+    &lt;/Stroke&gt;
+  &lt;/<span class="hl-kw">LineSymbolizer</span>&gt;
+&lt;/<span class="hl-kw">Rule</span>&gt;</pre>
+          </div>
+          <div class="callout callout--info">
+            <span class="callout-icon">💡</span>
+            <div><strong>stroke-dasharray</strong> crea líneas punteadas. <code>4 3</code> significa "4 píxeles de línea, 3 de espacio". Úsalo para ríos menores, límites provisionales, etc.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Puntos ── -->
+      <div class="sec">
+        <h2 class="sec-heading">● Estilos para Puntos</h2>
+
+        <div class="card">
+          <div class="card-title">Ciudades con tamaño proporcional</div>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">XML — PointSymbolizer</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>&lt;<span class="hl-kw">Rule</span>&gt;
+  &lt;<span class="hl-tp">Title</span>&gt;Ciudades grandes&lt;/<span class="hl-tp">Title</span>&gt;
+  &lt;ogc:<span class="hl-kw">Filter</span>&gt;
+    &lt;ogc:PropertyIsGreaterThan&gt;
+      &lt;ogc:PropertyName&gt;<span class="hl-tp">pop_max</span>&lt;/ogc:PropertyName&gt;
+      &lt;ogc:Literal&gt;<span class="hl-nm">5000000</span>&lt;/ogc:Literal&gt;
+    &lt;/ogc:PropertyIsGreaterThan&gt;
+  &lt;/ogc:<span class="hl-kw">Filter</span>&gt;
+  &lt;<span class="hl-kw">PointSymbolizer</span>&gt;
+    &lt;Graphic&gt;
+      &lt;Mark&gt;
+        &lt;WellKnownName&gt;<span class="hl-st">circle</span>&lt;/WellKnownName&gt;
+        &lt;Fill&gt;&lt;CssParameter name=<span class="hl-st">"fill"</span>&gt;<span class="hl-nm">#dc2626</span>&lt;/CssParameter&gt;&lt;/Fill&gt;
+        &lt;Stroke&gt;&lt;CssParameter name=<span class="hl-st">"stroke"</span>&gt;<span class="hl-nm">#fff</span>&lt;/CssParameter&gt;&lt;/Stroke&gt;
+      &lt;/Mark&gt;
+      &lt;Size&gt;<span class="hl-nm">14</span>&lt;/Size&gt;
+    &lt;/Graphic&gt;
+  &lt;/<span class="hl-kw">PointSymbolizer</span>&gt;
+&lt;/<span class="hl-kw">Rule</span>&gt;</pre>
+          </div>
+
+          <p style="margin-top:14px;">Formas disponibles para <code>WellKnownName</code>:</p>
+          <div class="glossary">
+            <div class="glossary-item"><span class="glossary-term">circle</span><span class="glossary-def">● Círculo — ciudades, puntos genéricos</span></div>
+            <div class="glossary-item"><span class="glossary-term">square</span><span class="glossary-def">■ Cuadrado — estaciones, edificios</span></div>
+            <div class="glossary-item"><span class="glossary-term">triangle</span><span class="glossary-def">▲ Triángulo — alertas, picos</span></div>
+            <div class="glossary-item"><span class="glossary-term">star</span><span class="glossary-def">★ Estrella — puntos de interés</span></div>
+            <div class="glossary-item"><span class="glossary-term">cross</span><span class="glossary-def">✚ Cruz — muestras, puntos de control</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Etiquetas ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🏷️ Etiquetas (Labels)</h2>
+
+        <div class="card">
+          <div class="card-title">Nombres con halo para legibilidad</div>
+          <p>Un mapa sin etiquetas está incompleto. Pero etiquetas sin halo son ilegibles sobre fondos de color.</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">XML — TextSymbolizer</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>&lt;<span class="hl-kw">TextSymbolizer</span>&gt;
+  &lt;Label&gt;
+    &lt;ogc:PropertyName&gt;<span class="hl-tp">name</span>&lt;/ogc:PropertyName&gt;
+  &lt;/Label&gt;
+  &lt;Font&gt;
+    &lt;CssParameter name=<span class="hl-st">"font-family"</span>&gt;Arial&lt;/CssParameter&gt;
+    &lt;CssParameter name=<span class="hl-st">"font-size"</span>&gt;<span class="hl-nm">12</span>&lt;/CssParameter&gt;
+    &lt;CssParameter name=<span class="hl-st">"font-weight"</span>&gt;bold&lt;/CssParameter&gt;
+  &lt;/Font&gt;
+  &lt;Fill&gt;
+    &lt;CssParameter name=<span class="hl-st">"fill"</span>&gt;<span class="hl-nm">#1e293b</span>&lt;/CssParameter&gt;
+  &lt;/Fill&gt;
+  <span class="hl-cm">&lt;!-- Halo blanco = texto legible sobre cualquier fondo --&gt;</span>
+  &lt;<span class="hl-kw">Halo</span>&gt;
+    &lt;Radius&gt;<span class="hl-nm">2</span>&lt;/Radius&gt;
+    &lt;Fill&gt;&lt;CssParameter name=<span class="hl-st">"fill"</span>&gt;<span class="hl-nm">#ffffff</span>&lt;/CssParameter&gt;&lt;/Fill&gt;
+  &lt;/<span class="hl-kw">Halo</span>&gt;
+  <span class="hl-cm">&lt;!-- Evitar que las etiquetas se superpongan --&gt;</span>
+  &lt;VendorOption name=<span class="hl-st">"conflictResolution"</span>&gt;true&lt;/VendorOption&gt;
+&lt;/<span class="hl-kw">TextSymbolizer</span>&gt;</pre>
+          </div>
+          <div class="callout callout--warn">
+            <span class="callout-icon">⚠️</span>
+            <div><strong>Siempre agrega Halo y conflictResolution.</strong> Sin halo, el texto se pierde sobre colores. Sin conflictResolution, las etiquetas se superponen y el mapa es ilegible.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Escalas ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🔍 Escalas — Mostrar/ocultar por zoom</h2>
+
+        <div class="card">
+          <div class="card-title">Controlar qué se ve según el nivel de zoom</div>
+          <p>No tiene sentido mostrar el nombre de cada ciudad cuando ves el mundo entero. Las escalas controlan qué se muestra en cada nivel de zoom:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">XML — Etiquetas solo en zoom cercano</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>&lt;<span class="hl-kw">Rule</span>&gt;
+  <span class="hl-cm">&lt;!-- Solo visible entre estas escalas --&gt;</span>
+  &lt;MinScaleDenominator&gt;<span class="hl-nm">1</span>&lt;/MinScaleDenominator&gt;
+  &lt;MaxScaleDenominator&gt;<span class="hl-nm">5000000</span>&lt;/MaxScaleDenominator&gt;
+  &lt;<span class="hl-kw">TextSymbolizer</span>&gt;
+    <span class="hl-cm">&lt;!-- etiqueta... --&gt;</span>
+  &lt;/<span class="hl-kw">TextSymbolizer</span>&gt;
+&lt;/<span class="hl-kw">Rule</span>&gt;</pre>
+          </div>
+
+          <div class="callout callout--info">
+            <span class="callout-icon">💡</span>
+            <div><strong>Referencia rápida de escalas:</strong> País completo ≈ 10,000,000+. Región ≈ 1,000,000. Ciudad ≈ 50,000-500,000. Barrio ≈ 5,000-50,000.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Paletas ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🎨 Recursos para elegir colores</h2>
+        <div class="card">
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px;">
+            <a href="https://colorbrewer2.org/" target="_blank" style="font-size:0.88rem;">🎨 ColorBrewer — Paletas para cartografía</a>
+            <a href="https://coolors.co/" target="_blank" style="font-size:0.88rem;">🖌️ Coolors — Generador de paletas</a>
+            <a href="https://carto.com/carto-colors/" target="_blank" style="font-size:0.88rem;">🗺️ Carto Colors — Paletas para mapas</a>
+          </div>
+          <div class="callout callout--tip" style="margin-top:14px;">
+            <span class="callout-icon">💡</span>
+            <div><strong>Regla de cartografía:</strong> Máximo 5-7 clases en una clasificación temática. Más de eso y el ojo humano no distingue bien los colores.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Glosario ── -->
+      <div class="sec">
+        <h2 class="sec-heading">📖 Glosario — Clase 04</h2>
+        <div class="glossary">
+          <div class="glossary-item"><span class="glossary-term">SLD</span><span class="glossary-def">Styled Layer Descriptor. Estándar OGC (XML) para definir cómo se visualizan los datos.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Rule</span><span class="glossary-def">Una regla SLD: "si el dato cumple esta condición, dibújalo así".</span></div>
+          <div class="glossary-item"><span class="glossary-term">Filter</span><span class="glossary-def">Condición que determina a qué features aplica la regla (por atributo, rango, etc.).</span></div>
+          <div class="glossary-item"><span class="glossary-term">ElseFilter</span><span class="glossary-def">"Todos los demás" — captura lo que no coincidió con ninguna regla anterior.</span></div>
+          <div class="glossary-item"><span class="glossary-term">PolygonSymbolizer</span><span class="glossary-def">Simbolizador para polígonos: relleno (Fill) + borde (Stroke).</span></div>
+          <div class="glossary-item"><span class="glossary-term">LineSymbolizer</span><span class="glossary-def">Simbolizador para líneas: color, grosor, estilo (sólida, punteada).</span></div>
+          <div class="glossary-item"><span class="glossary-term">PointSymbolizer</span><span class="glossary-def">Simbolizador para puntos: forma (circle, square, star), tamaño, color.</span></div>
+          <div class="glossary-item"><span class="glossary-term">TextSymbolizer</span><span class="glossary-def">Simbolizador para etiquetas: fuente, tamaño, color, halo, posición.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Halo</span><span class="glossary-def">Contorno alrededor del texto que mejora la legibilidad sobre fondos de color.</span></div>
+          <div class="glossary-item"><span class="glossary-term">ScaleDenominator</span><span class="glossary-def">Controla en qué nivel de zoom se muestra una regla. Min = cercano, Max = lejano.</span></div>
+          <div class="glossary-item"><span class="glossary-term">GetLegendGraphic</span><span class="glossary-def">Petición WMS que genera la imagen de la leyenda automáticamente desde las reglas SLD.</span></div>
+        </div>
+      </div>
+
+      <!-- ── Práctica ── -->
+      <div class="practice">
+        <span class="practice-chip">💻 Práctica 04</span>
+        <div class="practice-title">Estilos SLD Profesionales</div>
+        <ol class="practice-steps">
+          <li>Crea un estilo SLD para <strong>polígonos</strong> (países) con clasificación por población: al menos 3 rangos con colores diferentes.</li>
+          <li>Crea un estilo SLD para <strong>líneas</strong> (ríos) con grosor diferente según importancia (scalerank o longitud).</li>
+          <li>Crea un estilo SLD para <strong>puntos</strong> (ciudades) con tamaño proporcional a la población.</li>
+          <li>Agrega <strong>etiquetas con halo</strong> a la capa de países o ciudades.</li>
+          <li>Aplica <strong>control de escala:</strong> etiquetas visibles solo al hacer zoom cercano.</li>
+          <li>Asigna cada estilo como <strong>Default Style</strong> de su capa respectiva.</li>
+          <li>Verifica en Layer Preview que todo se ve correctamente.</li>
+          <li>Prueba la leyenda generada: <code>http://localhost:8080/geoserver/wms?service=WMS&request=GetLegendGraphic&layer=mi_proyecto:paises&format=image/png</code></li>
+        </ol>
+      </div>
+
+      <div class="challenge">
+        <span class="challenge-chip">🚀 Reto Extra — Carreteras con casing</span>
+        <div class="card-title" style="color:var(--text-primary); margin-bottom:8px;">Efecto doble línea</div>
+        <p style="font-size:0.9rem;">Crea un estilo con dos Rules para la misma capa de líneas: una línea gruesa oscura de fondo (5px, #374151) y una línea delgada clara encima (3px, #fbbf24). El resultado parece una carretera con borde. Es el mismo truco que usa Google Maps.</p>
+      </div>
+
+      <div class="sec">
+        <h2 class="sec-heading">✅ Checklist — Clase 04</h2>
+        <ul class="checklist">
+          <li><span class="ck-box"></span> Entiendo la estructura base de un SLD</li>
+          <li><span class="ck-box"></span> Estilo de polígono con clasificación por rangos</li>
+          <li><span class="ck-box"></span> Estilo de línea con grosor por atributo</li>
+          <li><span class="ck-box"></span> Estilo de punto con tamaño proporcional</li>
+          <li><span class="ck-box"></span> Etiquetas con halo y conflictResolution</li>
+          <li><span class="ck-box"></span> Control de escala aplicado</li>
+          <li><span class="ck-box"></span> Estilos asignados como Default Style</li>
+          <li><span class="ck-box"></span> Leyenda generada correctamente</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ═══ CUESTIONARIO ═══ -->
+    <div id="t-quiz3" class="tab-panel">
+      <div class="sec">
+        <h2 class="sec-heading">📝 Autoevaluación — Módulo 3</h2>
+        <p class="sec-lead">Verifica tu comprensión de SLD, simbolizadores, filtros y etiquetas.</p>
+      </div>
+
+      <div class="quiz">
+        <div class="quiz-heading">🧠 Cuestionario — 8 preguntas</div>
+
+        <div class="quiz-q" data-qi="1" data-ans="c" data-explain="SLD es el estándar OGC para definir la simbología de datos geográficos en servidores de mapas.">
+          <p class="quiz-q-text"><span class="quiz-q-num">1.</span> ¿Qué es SLD?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Un formato de datos geográficos</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Un tipo de base de datos</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Un estándar OGC (XML) para definir estilos de visualización</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Un lenguaje de programación</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="2" data-ans="b" data-explain="PolygonSymbolizer tiene Fill (relleno) y Stroke (borde).">
+          <p class="quiz-q-text"><span class="quiz-q-num">2.</span> ¿Qué simbolizador usarías para colorear un polígono?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> LineSymbolizer</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> PolygonSymbolizer</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> PointSymbolizer</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> TextSymbolizer</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="3" data-ans="a" data-explain="Un Filter define la condición: 'si población > 1000000, aplica este estilo'.">
+          <p class="quiz-q-text"><span class="quiz-q-num">3.</span> ¿Para qué sirve un Filter dentro de una Rule?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Para aplicar el estilo solo a features que cumplan una condición</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Para eliminar datos del servidor</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Para cambiar el sistema de coordenadas</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Para crear nuevos campos</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="4" data-ans="d" data-explain="ElseFilter captura todos los features que no coincidieron con ninguna regla anterior.">
+          <p class="quiz-q-text"><span class="quiz-q-num">4.</span> ¿Qué hace ElseFilter?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Elimina los features que no coinciden</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Aplica un segundo filtro</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Invierte el filtro anterior</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Captura "todos los demás" que no coincidieron con reglas previas</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="5" data-ans="b" data-explain="El Halo es un contorno alrededor del texto que lo hace legible sobre cualquier fondo.">
+          <p class="quiz-q-text"><span class="quiz-q-num">5.</span> ¿Para qué sirve el Halo en un TextSymbolizer?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Para hacer el texto más grande</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Para agregar un contorno que mejora la legibilidad</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Para rotar el texto</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Para cambiar el idioma</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="6" data-ans="c" data-explain="stroke-dasharray crea líneas punteadas. '4 3' = 4px línea, 3px espacio.">
+          <p class="quiz-q-text"><span class="quiz-q-num">6.</span> ¿Cómo creas una línea punteada en SLD?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> stroke-style="dotted"</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> line-type="dashed"</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> stroke-dasharray="4 3"</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> No es posible en SLD</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="7" data-ans="a" data-explain="MinScaleDenominator y MaxScaleDenominator controlan en qué rango de zoom se muestra la regla.">
+          <p class="quiz-q-text"><span class="quiz-q-num">7.</span> ¿Cómo haces que las etiquetas solo aparezcan al hacer zoom cercano?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Con MinScaleDenominator y MaxScaleDenominator</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Con un Filter de zoom</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Con font-size=0 en zoom lejano</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> No se puede controlar</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="8" data-ans="d" data-explain="conflictResolution=true evita que etiquetas se superpongan. GeoServer elimina las que se solapan.">
+          <p class="quiz-q-text"><span class="quiz-q-num">8.</span> ¿Qué hace conflictResolution=true en un TextSymbolizer?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Cambia el color de las etiquetas conflictivas</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Mueve las etiquetas a otra posición</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Agranda las etiquetas importantes</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Evita que las etiquetas se superpongan</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <button class="quiz-submit">Verificar Respuestas</button>
+        <div class="quiz-result"></div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <a href="../modulo-02/index.html" class="btn-nav btn-prev">← Módulo 2</a>
+      <a href="../modulo-04/index.html" class="btn-nav btn-next">Módulo 4 — WMS, WFS & CQL →</a>
+    </div>
+
+  </main>
+</div>
+<script src="../js/course.js"></script>
+</body>
+</html>
