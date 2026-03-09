@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Módulo 6 · Visor Web & App Móvil — ARTECLAB</title>
+  <link rel="stylesheet" href="../css/course.css">
+  <link rel="icon" href="../img/logo-arteclab.png" type="image/png">
+</head>
+<body>
+<div class="site-wrapper">
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="../index.html" class="topbar-brand">
+        <img src="../img/logo-arteclab.png" alt="ARTECLAB">
+        <span>/</span>
+        <span class="brand-course">GeoServer</span>
+      </a>
+      <nav class="topbar-nav">
+        <a href="../index.html">Inicio</a>
+        <a href="../modulo-05/index.html">Módulo 5</a>
+        <a href="index.html" class="active">Módulo 6</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <div class="mod-header">
+      <span class="mod-chip">Módulo 6 de 7</span>
+      <h1 class="mod-title">Visor Web &<br>App Móvil 🌐📱</h1>
+      <p class="mod-desc">Conecta GeoServer con el mundo real. Un visor web con Leaflet y una app móvil con Flutter — ambos consumiendo tus propios servicios WMS y WFS.</p>
+      <div class="mod-stats">
+        <span class="mod-stat">📅 Clase 7</span>
+        <span class="mod-stat">⏱️ 2 horas</span>
+        <span class="mod-stat">🎯 Intermedio</span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-target="t-clase07">Clase 07 — Visor Web + Flutter</button>
+      <button class="tab-btn" data-target="t-quiz6">📝 Cuestionario</button>
+    </div>
+
+    <!-- ═══ CLASE 07 ═══ -->
+    <div id="t-clase07" class="tab-panel active">
+
+      <div class="sec">
+        <h2 class="sec-heading">🎯 Objetivo</h2>
+        <p class="sec-lead">Construir un visor de mapas web con Leaflet que consuma tus servicios WMS y WFS, y ver cómo los mismos servicios alimentan una app móvil Flutter.</p>
+      </div>
+
+      <!-- ── Concepto ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🏗️ La Arquitectura: Un Servidor, Múltiples Clientes</h2>
+
+        <div class="card">
+          <div class="card-title">GeoServer es el motor — web y móvil son los clientes</div>
+          <p>Hasta ahora trabajaste con GeoServer desde la interfaz de administración y el navegador. Pero el propósito real de GeoServer es <strong>servir datos a aplicaciones</strong>. Tu GeoServer publica servicios WMS y WFS que cualquier cliente puede consumir:</p>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:16px 0; text-align:center;">
+            <div style="background:var(--bg-surface); padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
+              <div style="font-size:1.4rem;">🌐</div>
+              <strong style="font-size:0.85rem;">Sitio web</strong><br>
+              <span style="font-size:0.78rem; color:var(--text-muted);">Leaflet / OpenLayers</span>
+            </div>
+            <div style="background:var(--bg-surface); padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
+              <div style="font-size:1.4rem;">📱</div>
+              <strong style="font-size:0.85rem;">App móvil</strong><br>
+              <span style="font-size:0.78rem; color:var(--text-muted);">Flutter / React Native</span>
+            </div>
+            <div style="background:var(--bg-surface); padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
+              <div style="font-size:1.4rem;">🖥️</div>
+              <strong style="font-size:0.85rem;">QGIS / ArcGIS</strong><br>
+              <span style="font-size:0.78rem; color:var(--text-muted);">Desktop GIS</span>
+            </div>
+            <div style="background:var(--bg-surface); padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
+              <div style="font-size:1.4rem;">🤖</div>
+              <strong style="font-size:0.85rem;">Scripts</strong><br>
+              <span style="font-size:0.78rem; color:var(--text-muted);">Python / R / Node.js</span>
+            </div>
+          </div>
+
+          <p>Todos consumen las mismas URLs WMS/WFS que ya probaste en el Módulo 4. La única diferencia es cómo cada cliente las presenta al usuario.</p>
+
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div><strong>Un dato, una fuente, múltiples presentaciones.</strong> Publicas tus datos UNA vez en GeoServer y los consumes desde la web, el móvil, QGIS y scripts automatizados. Sin duplicar datos, sin sincronizar versiones.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ PARTE 1: LEAFLET ═══ -->
+      <div class="sec">
+        <h2 class="sec-heading">🌐 Parte 1 — Visor Web con Leaflet</h2>
+
+        <div class="card">
+          <div class="card-title">¿Qué es Leaflet?</div>
+          <p>Leaflet es la librería JavaScript más popular para crear mapas interactivos en la web. Es liviana (~42KB), fácil de aprender, de código abierto y funciona en todos los navegadores. La usan miles de sitios web: desde el New York Times hasta gobiernos de todo el mundo.</p>
+          <p style="margin-top:8px;">Para este módulo usamos <strong>HTML puro + Leaflet</strong> — no necesitas frameworks ni herramientas de compilación. Un solo archivo HTML que puedes abrir directamente en el navegador.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Visor básico con mapa base</div>
+          <p>Crea un archivo <code>visor.html</code> y pega este código:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">HTML — visor.html</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm">&lt;!DOCTYPE html&gt;</span>
+&lt;<span class="hl-kw">html</span>&gt;
+&lt;<span class="hl-kw">head</span>&gt;
+  &lt;<span class="hl-kw">title</span>&gt;Visor GeoServer&lt;/<span class="hl-kw">title</span>&gt;
+  &lt;<span class="hl-kw">meta</span> charset=<span class="hl-st">"UTF-8"</span>&gt;
+  &lt;<span class="hl-kw">meta</span> name=<span class="hl-st">"viewport"</span> content=<span class="hl-st">"width=device-width"</span>&gt;
+
+  <span class="hl-cm">&lt;!-- Leaflet CSS y JS desde CDN --&gt;</span>
+  &lt;<span class="hl-kw">link</span> rel=<span class="hl-st">"stylesheet"</span>
+    href=<span class="hl-st">"https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"</span>&gt;
+  &lt;<span class="hl-kw">script</span>
+    src=<span class="hl-st">"https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"</span>&gt;
+  &lt;/<span class="hl-kw">script</span>&gt;
+
+  &lt;<span class="hl-kw">style</span>&gt;
+    body { margin: 0; }
+    #mapa { width: 100vw; height: 100vh; }
+  &lt;/<span class="hl-kw">style</span>&gt;
+&lt;/<span class="hl-kw">head</span>&gt;
+&lt;<span class="hl-kw">body</span>&gt;
+
+  &lt;<span class="hl-kw">div</span> id=<span class="hl-st">"mapa"</span>&gt;&lt;/<span class="hl-kw">div</span>&gt;
+
+  &lt;<span class="hl-kw">script</span>&gt;
+    <span class="hl-cm">// 1. Crear el mapa centrado en Sudamérica</span>
+    <span class="hl-kw">var</span> mapa = L.<span class="hl-fn">map</span>(<span class="hl-st">'mapa'</span>).<span class="hl-fn">setView</span>([<span class="hl-nm">-15</span>, <span class="hl-nm">-60</span>], <span class="hl-nm">4</span>);
+
+    <span class="hl-cm">// 2. Agregar mapa base de OpenStreetMap</span>
+    L.<span class="hl-fn">tileLayer</span>(<span class="hl-st">'https://tile.openstreetmap.org/{z}/{x}/{y}.png'</span>, {
+      attribution: <span class="hl-st">'&amp;copy; OpenStreetMap'</span>
+    }).<span class="hl-fn">addTo</span>(mapa);
+  &lt;/<span class="hl-kw">script</span>&gt;
+
+&lt;/<span class="hl-kw">body</span>&gt;
+&lt;/<span class="hl-kw">html</span>&gt;</pre>
+          </div>
+          <p style="margin-top:8px;">Abre este archivo en el navegador. Deberías ver un mapa interactivo con OpenStreetMap. Este es tu punto de partida.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Agregar tu capa WMS de GeoServer</div>
+          <p>Ahora conectamos Leaflet a TU GeoServer. Agrega estas líneas dentro del <code>&lt;script&gt;</code>, después del tileLayer de OSM:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">JavaScript — Dentro del script</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm">// 3. Agregar capa WMS de tu GeoServer</span>
+<span class="hl-kw">var</span> capaWMS = L.tileLayer.<span class="hl-fn">wms</span>(
+  <span class="hl-st">'http://localhost:8080/geoserver/mi_proyecto/wms'</span>, {
+    layers: <span class="hl-st">'mi_proyecto:paises'</span>,
+    format: <span class="hl-st">'image/png'</span>,
+    transparent: <span class="hl-kw">true</span>,
+    version: <span class="hl-st">'1.1.1'</span>,
+    attribution: <span class="hl-st">'Datos: mi GeoServer'</span>
+  }
+).<span class="hl-fn">addTo</span>(mapa);</pre>
+          </div>
+
+          <div class="callout callout--info">
+            <span class="callout-icon">💡</span>
+            <div><strong>¿Qué hace <code>L.tileLayer.wms()</code>?</strong> Le dice a Leaflet: "hay un servidor WMS en esta URL que tiene una capa llamada 'paises'. Pídele las imágenes y muéstralas sobre el mapa base." Leaflet construye las URLs GetMap automáticamente según el zoom y la posición.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Selector de capas WMS</div>
+          <p>Leaflet tiene un control de capas integrado para activar/desactivar capas:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">JavaScript</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm">// Definir varias capas WMS</span>
+<span class="hl-kw">var</span> paises = L.tileLayer.<span class="hl-fn">wms</span>(
+  <span class="hl-st">'http://localhost:8080/geoserver/mi_proyecto/wms'</span>, {
+    layers: <span class="hl-st">'mi_proyecto:paises'</span>,
+    format: <span class="hl-st">'image/png'</span>, transparent: <span class="hl-kw">true</span>
+  });
+
+<span class="hl-kw">var</span> rios = L.tileLayer.<span class="hl-fn">wms</span>(
+  <span class="hl-st">'http://localhost:8080/geoserver/mi_proyecto/wms'</span>, {
+    layers: <span class="hl-st">'mi_proyecto:rios'</span>,
+    format: <span class="hl-st">'image/png'</span>, transparent: <span class="hl-kw">true</span>
+  });
+
+<span class="hl-kw">var</span> ciudades = L.tileLayer.<span class="hl-fn">wms</span>(
+  <span class="hl-st">'http://localhost:8080/geoserver/mi_proyecto/wms'</span>, {
+    layers: <span class="hl-st">'mi_proyecto:ciudades'</span>,
+    format: <span class="hl-st">'image/png'</span>, transparent: <span class="hl-kw">true</span>
+  });
+
+<span class="hl-cm">// Agregar control de capas</span>
+<span class="hl-kw">var</span> overlays = {
+  <span class="hl-st">"Países"</span>: paises,
+  <span class="hl-st">"Ríos"</span>: rios,
+  <span class="hl-st">"Ciudades"</span>: ciudades
+};
+
+L.control.<span class="hl-fn">layers</span>(<span class="hl-kw">null</span>, overlays).<span class="hl-fn">addTo</span>(mapa);
+paises.<span class="hl-fn">addTo</span>(mapa); <span class="hl-cm">// Activar por defecto</span></pre>
+          </div>
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div>El primer argumento de <code>L.control.layers()</code> son las capas base (radio buttons — solo una activa). El segundo son los overlays (checkboxes — puedes activar varios). Usamos <code>null</code> para base porque ya tenemos OSM fijo.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">GetFeatureInfo al hacer clic — Popup con atributos</div>
+          <p>Cuando el usuario hace clic en el mapa, consultas los atributos del feature con GetFeatureInfo y los muestras en un popup:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">JavaScript</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm">// 4. GetFeatureInfo al hacer clic</span>
+mapa.<span class="hl-fn">on</span>(<span class="hl-st">'click'</span>, <span class="hl-kw">function</span>(e) {
+  <span class="hl-kw">var</span> latlng = e.latlng;
+  <span class="hl-kw">var</span> bounds = mapa.<span class="hl-fn">getBounds</span>();
+  <span class="hl-kw">var</span> size = mapa.<span class="hl-fn">getSize</span>();
+  <span class="hl-kw">var</span> point = mapa.<span class="hl-fn">latLngToContainerPoint</span>(latlng);
+
+  <span class="hl-kw">var</span> url = <span class="hl-st">'http://localhost:8080/geoserver/mi_proyecto/wms?'</span>
+    + <span class="hl-st">'SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo'</span>
+    + <span class="hl-st">'&LAYERS=mi_proyecto:paises'</span>
+    + <span class="hl-st">'&QUERY_LAYERS=mi_proyecto:paises'</span>
+    + <span class="hl-st">'&INFO_FORMAT=application/json'</span>
+    + <span class="hl-st">'&SRS=EPSG:4326'</span>
+    + <span class="hl-st">'&WIDTH='</span> + size.x + <span class="hl-st">'&HEIGHT='</span> + size.y
+    + <span class="hl-st">'&BBOX='</span> + bounds.<span class="hl-fn">toBBoxString</span>()
+    + <span class="hl-st">'&X='</span> + <span class="hl-tp">Math</span>.<span class="hl-fn">round</span>(point.x)
+    + <span class="hl-st">'&Y='</span> + <span class="hl-tp">Math</span>.<span class="hl-fn">round</span>(point.y);
+
+  <span class="hl-fn">fetch</span>(url)
+    .<span class="hl-fn">then</span>(<span class="hl-kw">function</span>(r) { <span class="hl-kw">return</span> r.<span class="hl-fn">json</span>(); })
+    .<span class="hl-fn">then</span>(<span class="hl-kw">function</span>(data) {
+      <span class="hl-kw">if</span> (data.features && data.features.length > <span class="hl-nm">0</span>) {
+        <span class="hl-kw">var</span> props = data.features[<span class="hl-nm">0</span>].properties;
+        <span class="hl-kw">var</span> html = <span class="hl-st">'&lt;b&gt;'</span> + (props.name || <span class="hl-st">'Sin nombre'</span>) + <span class="hl-st">'&lt;/b&gt;&lt;br&gt;'</span>;
+        <span class="hl-kw">for</span> (<span class="hl-kw">var</span> key <span class="hl-kw">in</span> props) {
+          <span class="hl-kw">if</span> (key !== <span class="hl-st">'bbox'</span>) {
+            html += key + <span class="hl-st">': '</span> + props[key] + <span class="hl-st">'&lt;br&gt;'</span>;
+          }
+        }
+        L.<span class="hl-fn">popup</span>()
+          .<span class="hl-fn">setLatLng</span>(latlng)
+          .<span class="hl-fn">setContent</span>(html)
+          .<span class="hl-fn">openOn</span>(mapa);
+      }
+    });
+});
+</pre>
+          </div>
+
+          <div class="card" style="margin-top:16px;">
+            <div class="card-title">¿Qué es fetch()?</div>
+            <p><code>fetch()</code> es la forma moderna de JavaScript para hacer peticiones HTTP. Le das una URL, espera la respuesta del servidor, y cuando llega la procesas. En este caso: pide los atributos a GeoServer (GetFeatureInfo) y cuando responde con JSON, los muestra en un popup de Leaflet.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Filtro CQL desde la interfaz</div>
+          <p>Agrega un input de texto que permita filtrar la capa WMS dinámicamente:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">HTML — Agregar antes del div mapa</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>&lt;<span class="hl-kw">div</span> style=<span class="hl-st">"position:absolute; top:10px; left:60px; z-index:1000;
+  background:white; padding:8px 12px; border-radius:6px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.3);"</span>&gt;
+  &lt;<span class="hl-kw">input</span> id=<span class="hl-st">"filtro"</span> placeholder=<span class="hl-st">"CQL: continent='South America'"</span>
+    style=<span class="hl-st">"width:300px; padding:6px;"</span>&gt;
+  &lt;<span class="hl-kw">button</span> onclick=<span class="hl-st">"aplicarFiltro()"</span>&gt;Filtrar&lt;/<span class="hl-kw">button</span>&gt;
+  &lt;<span class="hl-kw">button</span> onclick=<span class="hl-st">"limpiarFiltro()"</span>&gt;Limpiar&lt;/<span class="hl-kw">button</span>&gt;
+&lt;/<span class="hl-kw">div</span>&gt;</pre>
+          </div>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">JavaScript</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-kw">function</span> <span class="hl-fn">aplicarFiltro</span>() {
+  <span class="hl-kw">var</span> cql = document.<span class="hl-fn">getElementById</span>(<span class="hl-st">'filtro'</span>).value;
+  paises.<span class="hl-fn">setParams</span>({ CQL_FILTER: cql });
+}
+
+<span class="hl-kw">function</span> <span class="hl-fn">limpiarFiltro</span>() {
+  document.<span class="hl-fn">getElementById</span>(<span class="hl-st">'filtro'</span>).value = <span class="hl-st">''</span>;
+  paises.<span class="hl-fn">setParams</span>({ CQL_FILTER: <span class="hl-kw">null</span> });
+}</pre>
+          </div>
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div><strong>setParams()</strong> actualiza los parámetros de la capa WMS y recarga las imágenes automáticamente. No necesitas destruir y recrear la capa — solo cambias el parámetro CQL_FILTER y Leaflet pide nuevas imágenes al servidor.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ PARTE 2: FLUTTER ═══ -->
+      <div class="sec">
+        <h2 class="sec-heading">📱 Parte 2 — Capas WMS en Flutter</h2>
+
+        <div class="card">
+          <div class="card-title">¿Cómo se conecta una app móvil a GeoServer?</div>
+          <p>Exactamente igual que el visor web: la app pide imágenes WMS o datos WFS a GeoServer usando las mismas URLs. La diferencia es que en vez de Leaflet usamos <code>flutter_map</code>, una librería de mapas para Flutter.</p>
+
+          <div class="callout callout--info">
+            <span class="callout-icon">💡</span>
+            <div><strong>No necesitas saber Flutter para entender esto.</strong> El código que verás es funcional y puedes copiarlo. Lo importante es entender el concepto: tu GeoServer sirve datos, y tanto la web como el móvil los consumen con las mismas URLs.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Capa WMS en flutter_map</div>
+          <p>Este es el código clave. Es equivalente al <code>L.tileLayer.wms()</code> de Leaflet:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Dart — Flutter</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm">// Dentro de FlutterMap → children:</span>
+<span class="hl-tp">TileLayer</span>(
+  wmsOptions: <span class="hl-tp">WMSTileLayerOptions</span>(
+    baseUrl: <span class="hl-st">'http://tu-servidor:8080/geoserver/mi_proyecto/wms?'</span>,
+    layers: [<span class="hl-st">'mi_proyecto:paises'</span>],
+    transparent: <span class="hl-kw">true</span>,
+    format: <span class="hl-st">'image/png'</span>,
+    version: <span class="hl-st">'1.1.1'</span>,
+  ),
+),</pre>
+          </div>
+          <div class="callout callout--warn">
+            <span class="callout-icon">⚠️</span>
+            <div><strong>En Flutter la URL necesita el <code>?</code> al final.</strong> Flutter_map construye los parámetros WMS después del <code>?</code>. Sin él, la URL queda malformada. En Leaflet no lo necesitas — lo agrega solo.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Comparación directa: Leaflet vs Flutter</div>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Comparación</span></div>
+            <pre><span class="hl-cm">Leaflet (web)                          Flutter (móvil)</span>
+─────────────────────                  ─────────────────────
+L.tileLayer.wms(url, {                 TileLayer(
+  layers: 'workspace:capa',             wmsOptions: WMSTileLayerOptions(
+  format: 'image/png',                    baseUrl: 'url?',
+  transparent: true                        layers: ['workspace:capa'],
+}).addTo(mapa);                            transparent: true,
+                                         ),
+                                       ),
+
+<span class="hl-cm">La URL WMS es la misma. Solo cambia la librería del cliente.</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Glosario ── -->
+      <div class="sec">
+        <h2 class="sec-heading">📖 Glosario — Clase 07</h2>
+        <div class="glossary">
+          <div class="glossary-item"><span class="glossary-term">Leaflet</span><span class="glossary-def">Librería JavaScript (~42KB) para crear mapas interactivos en la web. La más popular del mundo.</span></div>
+          <div class="glossary-item"><span class="glossary-term">L.tileLayer.wms()</span><span class="glossary-def">Función de Leaflet que crea una capa WMS. Pide imágenes a tu GeoServer y las muestra sobre el mapa.</span></div>
+          <div class="glossary-item"><span class="glossary-term">L.control.layers()</span><span class="glossary-def">Control de Leaflet que muestra checkboxes para activar/desactivar capas.</span></div>
+          <div class="glossary-item"><span class="glossary-term">setParams()</span><span class="glossary-def">Método de Leaflet WMS que actualiza parámetros (como CQL_FILTER) y recarga la capa.</span></div>
+          <div class="glossary-item"><span class="glossary-term">fetch()</span><span class="glossary-def">Función JavaScript para hacer peticiones HTTP. Se usa para consultar GetFeatureInfo.</span></div>
+          <div class="glossary-item"><span class="glossary-term">popup</span><span class="glossary-def">Ventana flotante que aparece al hacer clic en el mapa. Muestra información del feature.</span></div>
+          <div class="glossary-item"><span class="glossary-term">CDN</span><span class="glossary-def">Content Delivery Network. Red de servidores que distribuye archivos (como Leaflet) rápidamente.</span></div>
+          <div class="glossary-item"><span class="glossary-term">flutter_map</span><span class="glossary-def">Librería de Flutter para mostrar mapas. Equivalente a Leaflet pero para apps móviles.</span></div>
+          <div class="glossary-item"><span class="glossary-term">overlay</span><span class="glossary-def">Capa que se superpone sobre el mapa base. Puede activarse/desactivarse independientemente.</span></div>
+          <div class="glossary-item"><span class="glossary-term">toBBoxString()</span><span class="glossary-def">Método de Leaflet que devuelve el BBOX visible como texto: "west,south,east,north".</span></div>
+          <div class="glossary-item"><span class="glossary-term">latLngToContainerPoint()</span><span class="glossary-def">Convierte coordenadas geográficas a píxeles dentro del contenedor del mapa.</span></div>
+        </div>
+      </div>
+
+      <!-- ── Práctica ── -->
+      <div class="practice">
+        <span class="practice-chip">💻 Práctica 07</span>
+        <div class="practice-title">Visor Web Completo</div>
+        <ol class="practice-steps">
+          <li>Crea <code>visor.html</code> con Leaflet + mapa base OSM centrado en tu zona.</li>
+          <li>Agrega <strong>al menos 2 capas WMS</strong> de tu GeoServer.</li>
+          <li>Implementa el <strong>control de capas</strong> con checkboxes para activar/desactivar.</li>
+          <li>Implementa <strong>GetFeatureInfo</strong>: al hacer clic, muestra un popup con los atributos del feature.</li>
+          <li>Agrega el <strong>input de filtro CQL</strong> con botón Filtrar y Limpiar.</li>
+          <li>Prueba filtros: <code>continent='South America'</code>, <code>pop_est>50000000</code>, etc.</li>
+          <li>Agrega la <strong>leyenda</strong> como imagen: <code>&lt;img src="URL_GetLegendGraphic"&gt;</code></li>
+          <li><strong>(Extra)</strong> Prueba el código Flutter si tienes Flutter instalado, o simplemente compáralo con el código Leaflet.</li>
+        </ol>
+      </div>
+
+      <div class="challenge">
+        <span class="challenge-chip">🚀 Reto Extra — Selector de capas WMS dinámico</span>
+        <div class="card-title" style="color:var(--text-primary); margin-bottom:8px;">Panel lateral con checkboxes + leyenda</div>
+        <p style="font-size:0.9rem;">Crea un panel lateral con checkboxes para cada capa WMS. Al activar/desactivar un checkbox, la capa se agrega o quita del mapa. Debajo de cada checkbox, muestra la leyenda de esa capa con GetLegendGraphic. Usa CSS para darle estilo profesional al panel.</p>
+      </div>
+
+      <div class="sec">
+        <h2 class="sec-heading">✅ Checklist — Clase 07</h2>
+        <ul class="checklist">
+          <li><span class="ck-box"></span> visor.html funciona con mapa base OSM</li>
+          <li><span class="ck-box"></span> Al menos 2 capas WMS de mi GeoServer</li>
+          <li><span class="ck-box"></span> Control de capas con checkboxes</li>
+          <li><span class="ck-box"></span> GetFeatureInfo muestra popup al hacer clic</li>
+          <li><span class="ck-box"></span> Filtro CQL funcional desde input de texto</li>
+          <li><span class="ck-box"></span> Leyenda visible con GetLegendGraphic</li>
+          <li><span class="ck-box"></span> Entiendo cómo Flutter usa las mismas URLs WMS</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ═══ CUESTIONARIO ═══ -->
+    <div id="t-quiz6" class="tab-panel">
+      <div class="sec">
+        <h2 class="sec-heading">📝 Autoevaluación — Módulo 6</h2>
+        <p class="sec-lead">Verifica tu comprensión de Leaflet, integración WMS y la arquitectura cliente-servidor.</p>
+      </div>
+
+      <div class="quiz">
+        <div class="quiz-heading">🧠 Cuestionario — 8 preguntas</div>
+
+        <div class="quiz-q" data-qi="1" data-ans="c" data-explain="L.tileLayer.wms() conecta Leaflet a un servicio WMS y muestra las imágenes del mapa.">
+          <p class="quiz-q-text"><span class="quiz-q-num">1.</span> ¿Qué función de Leaflet usas para agregar una capa WMS?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> L.tileLayer()</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> L.wmsLayer()</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> L.tileLayer.wms()</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> L.geoserver()</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="2" data-ans="a" data-explain="GeoServer publica datos con URLs estándar WMS/WFS. Cualquier cliente (web, móvil, desktop) usa las mismas URLs.">
+          <p class="quiz-q-text"><span class="quiz-q-num">2.</span> ¿Por qué Leaflet y Flutter usan las mismas URLs para acceder a GeoServer?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Porque WMS/WFS son estándares universales que cualquier cliente entiende</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Porque GeoServer detecta el cliente y adapta la URL</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Porque ambos usan JavaScript</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> No usan las mismas URLs</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="3" data-ans="b" data-explain="setParams() actualiza un parámetro de la capa WMS (como CQL_FILTER) y recarga las imágenes.">
+          <p class="quiz-q-text"><span class="quiz-q-num">3.</span> ¿Cómo aplicas un filtro CQL a una capa WMS en Leaflet sin recrear la capa?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Borrando la capa y creando una nueva</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Con setParams({ CQL_FILTER: '...' })</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Modificando la URL directamente</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> No se puede filtrar en Leaflet</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="4" data-ans="d" data-explain="fetch() hace la petición HTTP a GeoServer para obtener el JSON de GetFeatureInfo.">
+          <p class="quiz-q-text"><span class="quiz-q-num">4.</span> ¿Qué función JavaScript se usa para hacer la petición GetFeatureInfo?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> L.getFeatureInfo()</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> document.getElementById()</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> mapa.identify()</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> fetch(url)</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="5" data-ans="c" data-explain="En Flutter la baseUrl necesita ? al final. En Leaflet no es necesario.">
+          <p class="quiz-q-text"><span class="quiz-q-num">5.</span> ¿Cuál es la diferencia clave en la URL WMS entre Leaflet y Flutter?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Flutter usa HTTPS, Leaflet usa HTTP</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Flutter usa WFS, Leaflet usa WMS</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> En Flutter la URL debe terminar en ? (interrogación)</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> No hay diferencia</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="6" data-ans="a" data-explain="L.control.layers() con null como primer argumento (sin base layers) y overlays como segundo.">
+          <p class="quiz-q-text"><span class="quiz-q-num">6.</span> ¿Cómo agregas checkboxes para activar/desactivar capas WMS en Leaflet?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> L.control.layers(null, overlays).addTo(mapa)</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> mapa.addCheckboxes(capas)</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> L.layerControl(capas)</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> No es posible en Leaflet</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="7" data-ans="b" data-explain="latLngToContainerPoint convierte coordenadas geográficas a posición de píxel dentro del mapa.">
+          <p class="quiz-q-text"><span class="quiz-q-num">7.</span> ¿Para qué se usa latLngToContainerPoint() en el GetFeatureInfo?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Para mover el mapa a esa posición</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Para convertir la coordenada del clic a píxeles X,Y que necesita GetFeatureInfo</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Para crear un marcador</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Para calcular distancias</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="8" data-ans="d" data-explain="Publicas UNA vez en GeoServer y consumes desde web, móvil, QGIS y scripts sin duplicar datos.">
+          <p class="quiz-q-text"><span class="quiz-q-num">8.</span> ¿Cuál es la ventaja principal de la arquitectura "un servidor, múltiples clientes"?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Es más barato</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Los mapas se ven mejor</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> No necesitas internet</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Un dato, una fuente — sin duplicar datos ni sincronizar versiones</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <button class="quiz-submit">Verificar Respuestas</button>
+        <div class="quiz-result"></div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <a href="../modulo-05/index.html" class="btn-nav btn-prev">← Módulo 5</a>
+      <a href="../modulo-07/index.html" class="btn-nav btn-next">Módulo 7 — Deploy en Producción →</a>
+    </div>
+
+  </main>
+</div>
+<script src="../js/course.js"></script>
+</body>
+</html>
