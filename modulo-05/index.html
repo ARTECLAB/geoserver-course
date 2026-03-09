@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Módulo 5 · Seguridad & Control de Acceso — ARTECLAB</title>
+  <link rel="stylesheet" href="../css/course.css">
+  <link rel="icon" href="../img/logo-arteclab.png" type="image/png">
+</head>
+<body>
+<div class="site-wrapper">
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="../index.html" class="topbar-brand">
+        <img src="../img/logo-arteclab.png" alt="ARTECLAB">
+        <span>/</span>
+        <span class="brand-course">GeoServer</span>
+      </a>
+      <nav class="topbar-nav">
+        <a href="../index.html">Inicio</a>
+        <a href="../modulo-04/index.html">Módulo 4</a>
+        <a href="index.html" class="active">Módulo 5</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <div class="mod-header">
+      <span class="mod-chip">Módulo 5 de 7</span>
+      <h1 class="mod-title">Seguridad &<br>Control de Acceso 🔒</h1>
+      <p class="mod-desc">No todos deben ver todo. Usuarios, roles, restricción por capa y workspace. Protege tu GeoServer como un profesional.</p>
+      <div class="mod-stats">
+        <span class="mod-stat">📅 Clase 6</span>
+        <span class="mod-stat">⏱️ 2 horas</span>
+        <span class="mod-stat">🎯 Intermedio</span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-target="t-clase06">Clase 06 — Seguridad</button>
+      <button class="tab-btn" data-target="t-quiz5">📝 Cuestionario</button>
+    </div>
+
+    <!-- ═══ CLASE 06 ═══ -->
+    <div id="t-clase06" class="tab-panel active">
+
+      <div class="sec">
+        <h2 class="sec-heading">🎯 Objetivo</h2>
+        <p class="sec-lead">Configurar usuarios y roles en GeoServer, restringir acceso a capas y servicios por usuario, y aplicar reglas de seguridad a nivel de workspace, capa y operación.</p>
+      </div>
+
+      <!-- ── Por qué seguridad ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🛡️ ¿Por qué necesitas seguridad en GeoServer?</h2>
+
+        <div class="card">
+          <div class="card-title">El problema real</div>
+          <p>Hasta ahora, tu GeoServer está abierto: cualquiera que conozca la URL puede ver todas las capas, descargar todos los datos y acceder a la administración con <code>admin/geoserver</code>. En un proyecto real esto es inaceptable.</p>
+
+          <p style="margin-top:14px;">Escenarios reales que requieren seguridad:</p>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin:16px 0;">
+            <div style="background:rgba(239,68,68,0.08); padding:14px; border-radius:var(--radius-sm); border:1px solid rgba(239,68,68,0.15);">
+              <strong style="color:var(--red-500); font-size:0.85rem;">🏛️ Gobierno</strong><br>
+              <span style="font-size:0.82rem;">Catastro municipal: datos de propiedades privadas NO deben ser públicos. Solo funcionarios autorizados.</span>
+            </div>
+            <div style="background:rgba(245,158,11,0.08); padding:14px; border-radius:var(--radius-sm); border:1px solid rgba(245,158,11,0.15);">
+              <strong style="color:var(--amber-500); font-size:0.85rem;">🏗️ Empresa</strong><br>
+              <span style="font-size:0.82rem;">Consultora ambiental: datos de clientes son confidenciales. Cada cliente solo ve sus propias capas.</span>
+            </div>
+            <div style="background:var(--teal-glow); padding:14px; border-radius:var(--radius-sm);">
+              <strong style="color:var(--teal-400); font-size:0.85rem;">🌐 IDE pública</strong><br>
+              <span style="font-size:0.82rem;">Algunos datos son públicos (límites, ríos) pero otros son restringidos (infraestructura crítica).</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Conceptos ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🧩 Los 3 Conceptos de Seguridad</h2>
+
+        <div class="card">
+          <div class="card-title">Usuarios → Roles → Reglas</div>
+          <p>La seguridad de GeoServer se basa en 3 niveles que trabajan juntos:</p>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:16px 0;">
+            <div style="background:var(--bg-surface); padding:18px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); text-align:center;">
+              <div style="font-size:1.6rem; margin-bottom:6px;">👤</div>
+              <strong style="color:var(--text-primary);">1. Usuarios</strong><br>
+              <span style="font-size:0.83rem;">Personas con credenciales (usuario + contraseña). Cada persona que accede tiene su propio usuario.</span>
+            </div>
+            <div style="background:var(--bg-surface); padding:18px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); text-align:center;">
+              <div style="font-size:1.6rem; margin-bottom:6px;">🏷️</div>
+              <strong style="color:var(--text-primary);">2. Roles</strong><br>
+              <span style="font-size:0.83rem;">Etiquetas que agrupan permisos. Un usuario puede tener uno o varios roles (ej: "editor", "visor").</span>
+            </div>
+            <div style="background:var(--teal-glow); padding:18px; border-radius:var(--radius-sm); text-align:center;">
+              <div style="font-size:1.6rem; margin-bottom:6px;">📋</div>
+              <strong style="color:var(--teal-400);">3. Reglas</strong><br>
+              <span style="font-size:0.83rem;">Definen qué puede hacer cada rol: "el rol visor_publico puede leer la capa países pero NO la capa catastro".</span>
+            </div>
+          </div>
+
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Flujo de seguridad</span></div>
+            <pre>Usuario "maria" (contraseña: *****)
+  └── Tiene rol: "analista_ambiental"
+       └── Regla: el rol "analista_ambiental" puede:
+            ✅ Leer workspace "datos_ambientales"
+            ✅ Leer workspace "datos_publicos"
+            ❌ NO puede leer workspace "catastro"
+            ❌ NO puede acceder a administración</pre>
+          </div>
+
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div><strong>Piensa en roles, no en usuarios.</strong> No creas reglas para cada usuario individual. Crea roles con permisos y luego asigna usuarios a roles. Si mañana llega un nuevo analista, solo le asignas el rol "analista" y hereda todos los permisos.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Paso 1: Cambiar contraseña ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🔑 Paso 1 — Cambiar la Contraseña de Admin</h2>
+
+        <div class="card">
+          <div class="card-title">Lo primero que debes hacer en cualquier instalación</div>
+          <p>Menú lateral → <strong>Security</strong> → <strong>Users, Groups, and Roles</strong> → pestaña <strong>Users/Groups</strong> → clic en <strong>admin</strong></p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Configuración</span></div>
+            <pre><span class="hl-cm">Password:         tu_nueva_contraseña_segura</span>
+<span class="hl-cm">Confirm password: tu_nueva_contraseña_segura</span>
+<span class="hl-cm">→ Save</span></pre>
+          </div>
+          <div class="callout callout--danger">
+            <span class="callout-icon">⚠️</span>
+            <div><strong>La contraseña por defecto <code>geoserver</code> es conocida por todo el mundo.</strong> Si tu servidor es accesible desde internet y no la cambias, cualquiera puede entrar y modificar o borrar tus datos. Cámbiala AHORA.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Paso 2: Crear roles ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🏷️ Paso 2 — Crear Roles</h2>
+
+        <div class="card">
+          <div class="card-title">Diseñar los roles antes de crear usuarios</div>
+          <p>Piensa primero qué tipos de acceso necesitas. Ejemplo para un proyecto típico:</p>
+
+          <div class="glossary" style="margin:14px 0;">
+            <div class="glossary-item"><span class="glossary-term">ROLE_ADMIN</span><span class="glossary-def">Acceso total. Administra GeoServer: crea capas, estilos, usuarios. Ya existe por defecto.</span></div>
+            <div class="glossary-item"><span class="glossary-term">ROLE_VISOR</span><span class="glossary-def">Solo puede VER capas públicas. No puede editar ni acceder a datos restringidos.</span></div>
+            <div class="glossary-item"><span class="glossary-term">ROLE_EDITOR</span><span class="glossary-def">Puede ver TODAS las capas y editar datos vía WFS-T. Para técnicos del equipo.</span></div>
+            <div class="glossary-item"><span class="glossary-term">ROLE_PROYECTO_X</span><span class="glossary-def">Solo puede ver las capas del workspace "proyecto_x". Para clientes específicos.</span></div>
+          </div>
+
+          <p>Menú lateral → <strong>Security</strong> → <strong>Users, Groups, and Roles</strong> → pestaña <strong>Roles</strong> → <strong>Add new role</strong></p>
+
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Crear cada rol</span></div>
+            <pre><span class="hl-cm">Role name: ROLE_VISOR</span>
+<span class="hl-cm">→ Save</span>
+
+<span class="hl-cm">Role name: ROLE_EDITOR</span>
+<span class="hl-cm">→ Save</span></pre>
+          </div>
+
+          <div class="callout callout--info">
+            <span class="callout-icon">💡</span>
+            <div><strong>Convención de nombres:</strong> Los roles en GeoServer empiezan con <code>ROLE_</code> por convención. No es obligatorio, pero es la práctica estándar y ayuda a identificarlos.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Paso 3: Crear usuarios ── -->
+      <div class="sec">
+        <h2 class="sec-heading">👤 Paso 3 — Crear Usuarios y Asignar Roles</h2>
+
+        <div class="card">
+          <div class="card-title">Cada persona tiene su propio usuario</div>
+          <p>Menú lateral → <strong>Security</strong> → <strong>Users, Groups, and Roles</strong> → pestaña <strong>Users/Groups</strong> → <strong>Add new user</strong></p>
+
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Ejemplo: Usuario visor público</span></div>
+            <pre><span class="hl-cm">Username:  visor_publico</span>
+<span class="hl-cm">Password:  contraseña_segura</span>
+<span class="hl-cm">Enabled:   ✓</span>
+
+<span class="hl-cm">Roles asignados: ROLE_VISOR</span>
+<span class="hl-cm">→ Seleccionar ROLE_VISOR en la lista y mover a "Selected"</span>
+<span class="hl-cm">→ Save</span></pre>
+          </div>
+
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Ejemplo: Usuario técnico</span></div>
+            <pre><span class="hl-cm">Username:  tecnico_juan</span>
+<span class="hl-cm">Password:  contraseña_segura</span>
+<span class="hl-cm">Enabled:   ✓</span>
+
+<span class="hl-cm">Roles asignados: ROLE_EDITOR</span>
+<span class="hl-cm">→ Save</span></pre>
+          </div>
+
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div><strong>Un usuario puede tener múltiples roles.</strong> Si Juan es técnico Y también necesita ver datos del proyecto X, le asignas ROLE_EDITOR y ROLE_PROYECTO_X. Los permisos se suman.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Paso 4: Reglas de acceso ── -->
+      <div class="sec">
+        <h2 class="sec-heading">📋 Paso 4 — Reglas de Acceso a Datos</h2>
+
+        <div class="card">
+          <div class="card-title">¿Qué puede ver cada rol?</div>
+          <p>Menú lateral → <strong>Security</strong> → <strong>Data</strong> → <strong>Add new rule</strong></p>
+
+          <p style="margin-top:12px;">Cada regla define: <strong>Workspace</strong> + <strong>Layer</strong> + <strong>Access mode</strong> + <strong>Roles</strong></p>
+
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Regla 1 — Todo el mundo puede leer datos públicos</span></div>
+            <pre><span class="hl-cm">Workspace:    mi_proyecto</span>
+<span class="hl-cm">Layer:        *  (todas las capas)</span>
+<span class="hl-cm">Access mode:  Read</span>
+<span class="hl-cm">Roles:        ROLE_VISOR, ROLE_EDITOR, ROLE_ADMIN</span></pre>
+          </div>
+
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Regla 2 — Solo editores pueden escribir</span></div>
+            <pre><span class="hl-cm">Workspace:    mi_proyecto</span>
+<span class="hl-cm">Layer:        *</span>
+<span class="hl-cm">Access mode:  Write</span>
+<span class="hl-cm">Roles:        ROLE_EDITOR, ROLE_ADMIN</span></pre>
+          </div>
+
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Regla 3 — Restringir una capa sensible</span></div>
+            <pre><span class="hl-cm">Workspace:    datos_privados</span>
+<span class="hl-cm">Layer:        catastro</span>
+<span class="hl-cm">Access mode:  Read</span>
+<span class="hl-cm">Roles:        ROLE_EDITOR, ROLE_ADMIN</span>
+<span class="hl-cm">→ ROLE_VISOR NO está en la lista = no puede ver esta capa</span></pre>
+          </div>
+
+          <div class="callout callout--warn">
+            <span class="callout-icon">⚠️</span>
+            <div><strong>Cuidado con el orden de las reglas.</strong> GeoServer evalúa las reglas de más específica a más general. Una regla para <code>mi_proyecto:catastro</code> tiene prioridad sobre una regla para <code>mi_proyecto:*</code>.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Access modes explicados</div>
+          <div class="glossary">
+            <div class="glossary-item"><span class="glossary-term">Read (r)</span><span class="glossary-def">Puede ver la capa vía WMS y descargar datos vía WFS. Es el permiso más básico.</span></div>
+            <div class="glossary-item"><span class="glossary-term">Write (w)</span><span class="glossary-def">Puede crear, modificar y eliminar features vía WFS-T (transaccional). Para editores.</span></div>
+            <div class="glossary-item"><span class="glossary-term">Admin (a)</span><span class="glossary-def">Puede administrar la capa: cambiar estilos, metadatos, configuración. Solo administradores.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Paso 5: Reglas de servicios ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🔗 Paso 5 — Reglas de Acceso a Servicios</h2>
+
+        <div class="card">
+          <div class="card-title">Controlar qué servicios están disponibles</div>
+          <p>Menú lateral → <strong>Security</strong> → <strong>Services</strong></p>
+          <p style="margin-top:8px;">Puedes restringir operaciones específicas. Por ejemplo: permitir WMS (ver mapas) pero bloquear WFS (descargar datos) para ciertos roles.</p>
+
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Ejemplo: Visor solo puede usar WMS, no WFS</span></div>
+            <pre><span class="hl-cm">Service:    WFS</span>
+<span class="hl-cm">Method:     *  (todas las operaciones)</span>
+<span class="hl-cm">Roles:      ROLE_EDITOR, ROLE_ADMIN</span>
+<span class="hl-cm">→ ROLE_VISOR no está = no puede usar WFS</span>
+<span class="hl-cm">→ El visor puede VER mapas (WMS) pero NO descargar datos (WFS)</span></pre>
+          </div>
+
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div><strong>Caso real:</strong> Una IDE pública permite que cualquiera vea los mapas (WMS abierto) pero solo usuarios registrados pueden descargar datos (WFS restringido). Esto protege los datos de descargas masivas no autorizadas.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Paso 6: Probar ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🧪 Paso 6 — Probar la Seguridad</h2>
+
+        <div class="card">
+          <div class="card-title">Verificar que las restricciones funcionan</div>
+          <p>La mejor forma de probar es abrir una ventana de incógnito del navegador (sin la sesión de admin) y acceder como cada usuario:</p>
+
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Pruebas paso a paso</span></div>
+            <pre><span class="hl-cm"># 1. Abrir ventana de incógnito</span>
+<span class="hl-cm"># 2. Ir a: http://localhost:8080/geoserver/web/</span>
+<span class="hl-cm"># 3. Login como "visor_publico"</span>
+<span class="hl-cm"># 4. Verificar:</span>
+<span class="hl-cm">#    ✅ ¿Ve las capas públicas en Layer Preview?</span>
+<span class="hl-cm">#    ❌ ¿NO ve las capas restringidas?</span>
+<span class="hl-cm">#    ❌ ¿NO puede acceder a Styles, Stores, Workspaces?</span>
+
+<span class="hl-cm"># 5. Probar WMS directamente en la URL:</span>
+http://visor_publico:contraseña@localhost:8080/geoserver/mi_proyecto/wms?
+  service=WMS&request=GetMap&layers=mi_proyecto:paises&...
+
+<span class="hl-cm"># 6. Probar WFS (debe fallar para ROLE_VISOR si lo restringiste):</span>
+http://visor_publico:contraseña@localhost:8080/geoserver/mi_proyecto/wfs?
+  service=WFS&request=GetFeature&typeName=mi_proyecto:paises&...</pre>
+          </div>
+
+          <div class="callout callout--info">
+            <span class="callout-icon">💡</span>
+            <div><strong>Puedes pasar credenciales en la URL</strong> con el formato <code>usuario:contraseña@host</code>. Esto es útil para probar rápido, pero NUNCA lo uses en producción — las contraseñas quedan visibles en el historial.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Probar desde QGIS</div>
+          <p>Al agregar un servicio WMS/WFS en QGIS, hay campos de usuario y contraseña en la configuración de la conexión. QGIS envía las credenciales en cada petición.</p>
+          <p style="margin-top:8px;">Prueba: conecta como <code>visor_publico</code> y verifica que solo ve las capas permitidas. Luego conecta como <code>tecnico_juan</code> y verifica que ve más capas.</p>
+        </div>
+      </div>
+
+      <!-- ── Buenas prácticas ── -->
+      <div class="sec">
+        <h2 class="sec-heading">✨ Buenas Prácticas de Seguridad</h2>
+
+        <div class="card">
+          <div style="display:grid; gap:12px;">
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+              <span style="color:var(--teal-400); font-weight:800; font-size:1.1rem;">1</span>
+              <div>
+                <strong style="color:var(--text-primary);">Cambiar la contraseña de admin inmediatamente.</strong>
+                <p style="font-size:0.85rem; margin:4px 0 0;">La contraseña por defecto es pública. Es lo primero que prueban los atacantes.</p>
+              </div>
+            </div>
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+              <span style="color:var(--teal-400); font-weight:800; font-size:1.1rem;">2</span>
+              <div>
+                <strong style="color:var(--text-primary);">Diseñar roles antes de crear usuarios.</strong>
+                <p style="font-size:0.85rem; margin:4px 0 0;">Piensa qué tipos de acceso necesitas y luego crea los roles. No hagas reglas por usuario individual.</p>
+              </div>
+            </div>
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+              <span style="color:var(--teal-400); font-weight:800; font-size:1.1rem;">3</span>
+              <div>
+                <strong style="color:var(--text-primary);">Principio de mínimo privilegio.</strong>
+                <p style="font-size:0.85rem; margin:4px 0 0;">Cada usuario solo debe tener acceso a lo que necesita. Si un visor no necesita WFS, no se lo des.</p>
+              </div>
+            </div>
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+              <span style="color:var(--teal-400); font-weight:800; font-size:1.1rem;">4</span>
+              <div>
+                <strong style="color:var(--text-primary);">Organizar datos sensibles en workspaces separados.</strong>
+                <p style="font-size:0.85rem; margin:4px 0 0;">Workspace "publico" para datos abiertos. Workspace "privado" para datos restringidos. Las reglas se aplican por workspace.</p>
+              </div>
+            </div>
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+              <span style="color:var(--teal-400); font-weight:800; font-size:1.1rem;">5</span>
+              <div>
+                <strong style="color:var(--text-primary);">Probar SIEMPRE con una ventana de incógnito.</strong>
+                <p style="font-size:0.85rem; margin:4px 0 0;">Tu sesión de admin tiene acceso a todo. La ventana de incógnito simula un usuario externo.</p>
+              </div>
+            </div>
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+              <span style="color:var(--teal-400); font-weight:800; font-size:1.1rem;">6</span>
+              <div>
+                <strong style="color:var(--text-primary);">En producción: HTTPS obligatorio.</strong>
+                <p style="font-size:0.85rem; margin:4px 0 0;">Sin HTTPS las contraseñas viajan en texto plano. En el Módulo 7 veremos cómo configurar HTTPS con el deploy.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Glosario ── -->
+      <div class="sec">
+        <h2 class="sec-heading">📖 Glosario — Clase 06</h2>
+        <div class="glossary">
+          <div class="glossary-item"><span class="glossary-term">Usuario</span><span class="glossary-def">Persona con credenciales (nombre + contraseña) que accede a GeoServer.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Rol</span><span class="glossary-def">Etiqueta que agrupa permisos. Los usuarios se asignan a roles, los roles tienen reglas.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Regla de datos</span><span class="glossary-def">Define qué rol puede leer/escribir qué workspace o capa.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Regla de servicio</span><span class="glossary-def">Define qué rol puede usar qué servicio (WMS, WFS, WCS).</span></div>
+          <div class="glossary-item"><span class="glossary-term">Read (r)</span><span class="glossary-def">Permiso de lectura: ver capas WMS, descargar datos WFS.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Write (w)</span><span class="glossary-def">Permiso de escritura: crear, editar y borrar features vía WFS-T.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Admin (a)</span><span class="glossary-def">Permiso de administración: cambiar configuración de capas, estilos, stores.</span></div>
+          <div class="glossary-item"><span class="glossary-term">ROLE_ADMIN</span><span class="glossary-def">Rol de administrador que viene por defecto. Tiene acceso total.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Mínimo privilegio</span><span class="glossary-def">Principio: cada usuario solo tiene acceso a lo estrictamente necesario.</span></div>
+          <div class="glossary-item"><span class="glossary-term">HTTPS</span><span class="glossary-def">HTTP seguro con cifrado. Obligatorio en producción para proteger contraseñas.</span></div>
+          <div class="glossary-item"><span class="glossary-term">WFS-T</span><span class="glossary-def">WFS Transaccional. Permite crear, editar y borrar features remotamente.</span></div>
+        </div>
+      </div>
+
+      <!-- ── Práctica ── -->
+      <div class="practice">
+        <span class="practice-chip">💻 Práctica 06</span>
+        <div class="practice-title">Seguridad Completa</div>
+        <ol class="practice-steps">
+          <li><strong>Cambia la contraseña de admin</strong> a una contraseña segura (mínimo 10 caracteres).</li>
+          <li><strong>Crea 3 roles:</strong> <code>ROLE_VISOR</code>, <code>ROLE_EDITOR</code>, y un rol personalizado para un proyecto (ej: <code>ROLE_PROYECTO_A</code>).</li>
+          <li><strong>Crea 3 usuarios:</strong> uno para cada rol. Asigna los roles correspondientes.</li>
+          <li><strong>Crea reglas de datos:</strong> El visor puede leer el workspace principal. El editor puede leer y escribir. El usuario de proyecto solo puede leer un workspace específico.</li>
+          <li><strong>Restringe WFS:</strong> Crea una regla de servicio que impida al visor usar WFS (solo puede ver mapas con WMS).</li>
+          <li><strong>Prueba en ventana de incógnito:</strong> Login como visor → verifica que no ve capas restringidas. Login como editor → verifica que ve todo.</li>
+          <li><strong>Prueba desde QGIS:</strong> Conecta como cada usuario y verifica que ve solo lo que debe ver.</li>
+          <li><strong>Prueba GetMap con credenciales:</strong> Pega una URL WMS con <code>usuario:contraseña@host</code> y verifica el acceso.</li>
+        </ol>
+      </div>
+
+      <div class="challenge">
+        <span class="challenge-chip">🚀 Reto Extra — Escenario multicliente</span>
+        <div class="card-title" style="color:var(--text-primary); margin-bottom:8px;">Consultora con 2 clientes</div>
+        <p style="font-size:0.9rem;">Simula una consultora con 2 clientes: "Municipio Norte" y "Municipio Sur". Crea 2 workspaces, 2 roles (<code>ROLE_NORTE</code>, <code>ROLE_SUR</code>), y 2 usuarios. Cada cliente solo debe ver sus propias capas. Verifica cruzado: el usuario Norte NO debe ver datos del Sur.</p>
+      </div>
+
+      <div class="sec">
+        <h2 class="sec-heading">✅ Checklist — Clase 06</h2>
+        <ul class="checklist">
+          <li><span class="ck-box"></span> Contraseña de admin cambiada</li>
+          <li><span class="ck-box"></span> Al menos 3 roles creados</li>
+          <li><span class="ck-box"></span> Al menos 3 usuarios con roles asignados</li>
+          <li><span class="ck-box"></span> Reglas de datos configuradas (read/write por workspace)</li>
+          <li><span class="ck-box"></span> Regla de servicio WFS restringida para visor</li>
+          <li><span class="ck-box"></span> Probado en ventana de incógnito: visor vs editor</li>
+          <li><span class="ck-box"></span> Probado desde QGIS con credenciales</li>
+          <li><span class="ck-box"></span> Entiendo el principio de mínimo privilegio</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ═══ CUESTIONARIO ═══ -->
+    <div id="t-quiz5" class="tab-panel">
+      <div class="sec">
+        <h2 class="sec-heading">📝 Autoevaluación — Módulo 5</h2>
+        <p class="sec-lead">Verifica tu comprensión de seguridad, usuarios, roles y reglas de acceso.</p>
+      </div>
+
+      <div class="quiz">
+        <div class="quiz-heading">🧠 Cuestionario — 8 preguntas</div>
+
+        <div class="quiz-q" data-qi="1" data-ans="b" data-explain="La secuencia es: crear roles con permisos → crear usuarios → asignar roles a usuarios.">
+          <p class="quiz-q-text"><span class="quiz-q-num">1.</span> ¿Cuál es el orden correcto para configurar seguridad?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Usuarios → Reglas → Roles</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Roles → Usuarios (con roles asignados) → Reglas</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Reglas → Roles → Usuarios</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> No importa el orden</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="2" data-ans="c" data-explain="Cambiar la contraseña de admin es lo primero porque la contraseña por defecto es pública.">
+          <p class="quiz-q-text"><span class="quiz-q-num">2.</span> ¿Qué es lo PRIMERO que debes hacer al instalar GeoServer en producción?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Publicar una capa</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Configurar CORS</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Cambiar la contraseña de admin</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Crear estilos SLD</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="3" data-ans="a" data-explain="Un rol agrupa permisos. Los usuarios se asignan a roles, no al revés.">
+          <p class="quiz-q-text"><span class="quiz-q-num">3.</span> ¿Qué es un rol en GeoServer?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Una etiqueta que agrupa permisos de acceso</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Un usuario especial</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Un tipo de servicio WMS</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Una capa con restricciones</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="4" data-ans="d" data-explain="El principio de mínimo privilegio dice que cada usuario solo debe tener acceso a lo necesario.">
+          <p class="quiz-q-text"><span class="quiz-q-num">4.</span> ¿Qué significa el principio de "mínimo privilegio"?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Dar acceso total a pocos usuarios</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> No crear usuarios, solo usar admin</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Bloquear todo y desbloquear caso por caso</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Cada usuario solo accede a lo estrictamente necesario</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="5" data-ans="b" data-explain="Read permite ver mapas (WMS) y descargar datos (WFS). Write permite editar features.">
+          <p class="quiz-q-text"><span class="quiz-q-num">5.</span> ¿Cuál es la diferencia entre Read y Write?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Read = WMS, Write = WFS</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Read = ver y descargar datos, Write = editar features</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Read = ver metadatos, Write = ver datos</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> No hay diferencia en GeoServer</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="6" data-ans="c" data-explain="Restringir WFS con una regla de servicio impide descargar datos pero permite ver mapas WMS.">
+          <p class="quiz-q-text"><span class="quiz-q-num">6.</span> ¿Cómo permites que un usuario vea mapas pero NO descargue datos?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Darle permiso Read pero no Write</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Quitarle todos los roles</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Crear una regla de servicio que restrinja WFS para su rol</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> No es posible en GeoServer</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="7" data-ans="a" data-explain="Organizar datos sensibles en workspaces separados facilita aplicar reglas de acceso.">
+          <p class="quiz-q-text"><span class="quiz-q-num">7.</span> ¿Por qué es buena práctica separar datos públicos y privados en workspaces diferentes?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Facilita aplicar reglas de acceso por workspace completo</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Los datos se cargan más rápido</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> GeoServer lo exige para funcionar</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> No hay ventaja, es preferencia personal</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="8" data-ans="d" data-explain="Sin HTTPS las contraseñas viajan en texto plano y cualquiera en la red puede interceptarlas.">
+          <p class="quiz-q-text"><span class="quiz-q-num">8.</span> ¿Por qué es obligatorio HTTPS en producción?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Para que los mapas se vean mejor</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Para que GeoServer sea más rápido</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Para cumplir con la norma OGC</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Para que las contraseñas viajen cifradas y no puedan ser interceptadas</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <button class="quiz-submit">Verificar Respuestas</button>
+        <div class="quiz-result"></div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <a href="../modulo-04/index.html" class="btn-nav btn-prev">← Módulo 4</a>
+      <a href="../modulo-06/index.html" class="btn-nav btn-next">Módulo 6 — Visor Web & Móvil →</a>
+    </div>
+
+  </main>
+</div>
+<script src="../js/course.js"></script>
+</body>
+</html>
