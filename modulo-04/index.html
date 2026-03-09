@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Módulo 4 · WMS, WFS & CQL — ARTECLAB</title>
+  <link rel="stylesheet" href="../css/course.css">
+  <link rel="icon" href="../img/logo-arteclab.png" type="image/png">
+</head>
+<body>
+<div class="site-wrapper">
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="../index.html" class="topbar-brand">
+        <img src="../img/logo-arteclab.png" alt="ARTECLAB">
+        <span>/</span>
+        <span class="brand-course">GeoServer</span>
+      </a>
+      <nav class="topbar-nav">
+        <a href="../index.html">Inicio</a>
+        <a href="../modulo-03/index.html">Módulo 3</a>
+        <a href="index.html" class="active">Módulo 4</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <div class="mod-header">
+      <span class="mod-chip">Módulo 4 de 7</span>
+      <h1 class="mod-title">Servicios WMS, WFS<br>& Filtros CQL ⚡</h1>
+      <p class="mod-desc">Domina las operaciones WMS y WFS, y aprende CQL para hacer consultas dinámicas sin tocar el servidor. Todo desde la URL.</p>
+      <div class="mod-stats">
+        <span class="mod-stat">📅 Clase 5</span>
+        <span class="mod-stat">⏱️ 2 horas</span>
+        <span class="mod-stat">🎯 Intermedio</span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-target="t-clase05">Clase 05 — WMS, WFS & CQL</button>
+      <button class="tab-btn" data-target="t-quiz4">📝 Cuestionario</button>
+    </div>
+
+    <!-- ═══ CLASE 05 ═══ -->
+    <div id="t-clase05" class="tab-panel active">
+
+      <div class="sec">
+        <h2 class="sec-heading">🎯 Objetivo</h2>
+        <p class="sec-lead">Entender a fondo las operaciones WMS y WFS, dominar filtros CQL para consultas dinámicas, y probar todo desde el navegador.</p>
+      </div>
+
+      <!-- ── WMS ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🗺️ WMS a Fondo — Las 4 Operaciones</h2>
+
+        <div class="card">
+          <div class="card-title">1. GetCapabilities — "¿Qué tienes disponible?"</div>
+          <p>La primera petición que hace cualquier cliente. Devuelve un XML con el catálogo completo de tu servidor: capas, formatos, SRS soportados.</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">URL</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>http://localhost:8080/geoserver/mi_proyecto/wms?service=WMS&version=1.1.1&request=GetCapabilities</pre>
+          </div>
+          <div class="callout callout--info">
+            <span class="callout-icon">💡</span>
+            <div>Cuando agregas un WMS en QGIS, internamente hace GetCapabilities para listar las capas. Si los metadatos están vacíos, el usuario ve nombres técnicos sin contexto. Por eso los metadatos del Módulo 2 son tan importantes.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">2. GetMap — "Dame una imagen del mapa"</div>
+          <p>La operación principal. Recibe parámetros y devuelve una imagen:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">URL — GetMap</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>http://localhost:8080/geoserver/mi_proyecto/wms?
+  service=WMS&version=1.1.1&request=GetMap
+  &layers=mi_proyecto:paises
+  &styles=
+  &srs=EPSG:4326
+  &bbox=-180,-90,180,90
+  &width=800&height=400
+  &format=image/png
+  &transparent=true</pre>
+          </div>
+
+          <p style="margin-top:14px;">Parámetros que puedes modificar:</p>
+          <div class="glossary">
+            <div class="glossary-item"><span class="glossary-term">format</span><span class="glossary-def"><code>image/png</code> (transparente), <code>image/jpeg</code> (comprimido), <code>image/png8</code> (PNG liviano).</span></div>
+            <div class="glossary-item"><span class="glossary-term">transparent</span><span class="glossary-def"><code>true</code> = fondo transparente. <code>false</code> = fondo blanco (o bgcolor).</span></div>
+            <div class="glossary-item"><span class="glossary-term">width / height</span><span class="glossary-def">Tamaño en píxeles de la imagen. Más grande = más detalle pero más pesado.</span></div>
+            <div class="glossary-item"><span class="glossary-term">layers</span><span class="glossary-def">Puedes pedir varias capas separadas por coma. Se superponen en orden.</span></div>
+          </div>
+
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div><strong>Truco:</strong> Pide múltiples capas en una sola imagen: <code>&layers=mi_proyecto:paises,mi_proyecto:rios,mi_proyecto:ciudades</code>. Se dibujan en orden (primero abajo, último arriba).</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">3. GetFeatureInfo — "¿Qué hay en este punto?"</div>
+          <p>Consulta los atributos del feature en una posición del mapa. Es el "Identificar" de QGIS pero desde una URL. Devuelve JSON, HTML o GML.</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">URL — GetFeatureInfo</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>http://localhost:8080/geoserver/mi_proyecto/wms?
+  service=WMS&version=1.1.1&request=GetFeatureInfo
+  &layers=mi_proyecto:paises
+  &query_layers=mi_proyecto:paises
+  &info_format=application/json
+  &srs=EPSG:4326&bbox=-180,-90,180,90
+  &width=800&height=400
+  &x=400&y=200
+  &feature_count=5</pre>
+          </div>
+          <div class="callout callout--warn">
+            <span class="callout-icon">⚠️</span>
+            <div>Para que GetFeatureInfo funcione, la capa debe tener <strong>Queryable</strong> activado en la pestaña Publishing de la configuración de la capa.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">4. GetLegendGraphic — "Dame la leyenda"</div>
+          <p>Genera una imagen de la leyenda basada en tu estilo SLD:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">URL — Leyenda</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>http://localhost:8080/geoserver/wms?service=WMS&version=1.1.1
+  &request=GetLegendGraphic
+  &layer=mi_proyecto:paises
+  &format=image/png
+  &LEGEND_OPTIONS=fontName:Arial;fontSize:12;fontAntiAliasing:true</pre>
+          </div>
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div>La leyenda se genera automáticamente desde los <code>&lt;Title&gt;</code> de cada Rule de tu SLD. Por eso es importante que cada Rule tenga un Title descriptivo.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── WFS ── -->
+      <div class="sec">
+        <h2 class="sec-heading">📦 WFS — Acceso a los Datos</h2>
+
+        <div class="card">
+          <div class="card-title">¿WMS o WFS? Cuándo usar cada uno</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:14px 0;">
+            <div style="background:var(--teal-glow); padding:16px; border-radius:var(--radius-sm);">
+              <strong style="color:var(--teal-400);">WMS — Imagen</strong><br>
+              <span style="font-size:0.85rem;">Visualizar mapas. Recibir fotos. Liviano. El 90% del tiempo.</span>
+            </div>
+            <div style="background:rgba(59,130,246,0.08); padding:16px; border-radius:var(--radius-sm);">
+              <strong style="color:var(--blue-500);">WFS — Datos</strong><br>
+              <span style="font-size:0.85rem;">Descargar datos. Analizar. Filtrar. Exportar a Shapefile/GeoJSON.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">GetFeature — Descargar datos</div>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">URL — GeoJSON</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>http://localhost:8080/geoserver/mi_proyecto/wfs?
+  service=WFS&version=2.0.0&request=GetFeature
+  &typeName=mi_proyecto:paises
+  &outputFormat=application/json
+  &count=10
+  &sortBy=pop_est+D</pre>
+          </div>
+
+          <p style="margin-top:14px;">Formatos de descarga disponibles:</p>
+          <div class="glossary">
+            <div class="glossary-item"><span class="glossary-term">application/json</span><span class="glossary-def">GeoJSON — para apps web y móviles.</span></div>
+            <div class="glossary-item"><span class="glossary-term">SHAPE-ZIP</span><span class="glossary-def">Descarga un ZIP con shapefile listo para QGIS. El servidor lo genera al vuelo.</span></div>
+            <div class="glossary-item"><span class="glossary-term">csv</span><span class="glossary-def">CSV para abrir en Excel o Python.</span></div>
+            <div class="glossary-item"><span class="glossary-term">KML</span><span class="glossary-def">Para Google Earth.</span></div>
+          </div>
+
+          <div class="callout callout--tip">
+            <span class="callout-icon">🎯</span>
+            <div><strong>SHAPE-ZIP es un servicio de descarga automático.</strong> Tus usuarios pueden descargar shapefiles directamente desde una URL sin que tú hagas nada. GeoServer genera el ZIP al vuelo.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">DescribeFeatureType — Ver la estructura de campos</div>
+          <p>Antes de escribir filtros CQL, necesitas saber los nombres exactos de los campos:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">URL</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>http://localhost:8080/geoserver/mi_proyecto/wfs?
+  service=WFS&version=2.0.0&request=DescribeFeatureType
+  &typeName=mi_proyecto:paises</pre>
+          </div>
+          <div class="callout callout--warn">
+            <span class="callout-icon">⚠️</span>
+            <div><strong>Los nombres de campos son case-sensitive en PostGIS.</strong> Si el campo se llama <code>pop_est</code>, escribir <code>Pop_Est</code> en un filtro CQL no funcionará. Siempre verifica con DescribeFeatureType.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CQL ── -->
+      <div class="sec">
+        <h2 class="sec-heading">⚡ Filtros CQL — Consultas Dinámicas</h2>
+
+        <div class="card">
+          <div class="card-title">¿Qué es CQL?</div>
+          <p>CQL (Common Query Language) es un lenguaje para filtrar datos <strong>directamente desde la URL</strong>. Es como un WHERE de SQL que se envía como parámetro HTTP. El servidor filtra ANTES de enviar — más eficiente que filtrar en el cliente.</p>
+          <p style="margin-top:8px;">Funciona tanto en WMS (GetMap) como en WFS (GetFeature). Solo agregas <code>&CQL_FILTER=...</code> a la URL.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Filtros por texto</div>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">CQL</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm"># Exacto</span>
+CQL_FILTER=name=<span class="hl-st">'Brazil'</span>
+
+<span class="hl-cm"># Contiene</span>
+CQL_FILTER=name <span class="hl-kw">LIKE</span> <span class="hl-st">'%land%'</span>
+
+<span class="hl-cm"># Empieza con</span>
+CQL_FILTER=name <span class="hl-kw">LIKE</span> <span class="hl-st">'Arg%'</span>
+
+<span class="hl-cm"># En una lista</span>
+CQL_FILTER=name <span class="hl-kw">IN</span> (<span class="hl-st">'Brazil'</span>,<span class="hl-st">'Argentina'</span>,<span class="hl-st">'Chile'</span>)</pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Filtros por valor numérico</div>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">CQL</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm"># Mayor que</span>
+CQL_FILTER=pop_est > <span class="hl-nm">100000000</span>
+
+<span class="hl-cm"># Rango</span>
+CQL_FILTER=pop_est <span class="hl-kw">BETWEEN</span> <span class="hl-nm">10000000</span> <span class="hl-kw">AND</span> <span class="hl-nm">50000000</span></pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Operadores lógicos: AND, OR, NOT</div>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">CQL</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm"># Ambas condiciones</span>
+CQL_FILTER=continent=<span class="hl-st">'South America'</span> <span class="hl-kw">AND</span> pop_est > <span class="hl-nm">10000000</span>
+
+<span class="hl-cm"># Al menos una</span>
+CQL_FILTER=continent=<span class="hl-st">'Europe'</span> <span class="hl-kw">OR</span> continent=<span class="hl-st">'Africa'</span>
+
+<span class="hl-cm"># Excluir</span>
+CQL_FILTER=<span class="hl-kw">NOT</span> (continent=<span class="hl-st">'Antarctica'</span>)
+
+<span class="hl-cm"># Combinados</span>
+CQL_FILTER=(continent=<span class="hl-st">'South America'</span> <span class="hl-kw">OR</span> continent=<span class="hl-st">'Africa'</span>) <span class="hl-kw">AND</span> pop_est > <span class="hl-nm">50000000</span></pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Filtros espaciales</div>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">CQL</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm"># Dentro de un rectángulo</span>
+CQL_FILTER=<span class="hl-fn">BBOX</span>(geom, <span class="hl-nm">-80</span>, <span class="hl-nm">-60</span>, <span class="hl-nm">-30</span>, <span class="hl-nm">15</span>)
+
+<span class="hl-cm"># Dentro de un radio (50 km desde un punto)</span>
+CQL_FILTER=<span class="hl-fn">DWITHIN</span>(geom, <span class="hl-fn">POINT</span>(<span class="hl-nm">-58.38</span> <span class="hl-nm">-34.60</span>), <span class="hl-nm">50000</span>, meters)</pre>
+          </div>
+          <div class="callout callout--danger">
+            <span class="callout-icon">⚠️</span>
+            <div><strong>En CQL el orden es POINT(longitud latitud)</strong> — longitud primero, luego latitud. Es diferente a LatLng. Y el nombre del campo de geometría debe coincidir exactamente con tu tabla (<code>geom</code>, <code>the_geom</code>, etc.).</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Ejemplo completo: Filtrar + Descargar</div>
+          <p>Descargar como shapefile todos los países de Sudamérica con más de 10 millones de habitantes:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">URL completa</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>http://localhost:8080/geoserver/mi_proyecto/wfs?
+  service=WFS&version=2.0.0&request=GetFeature
+  &typeName=mi_proyecto:paises
+  &outputFormat=SHAPE-ZIP
+  &CQL_FILTER=continent='South America' AND pop_est>10000000
+  &propertyName=name,continent,pop_est,geom</pre>
+          </div>
+          <p style="margin-top:8px; font-size:0.88rem;">Pega esta URL en el navegador → descarga un ZIP → ábrelo en QGIS → verás solo Brasil, Argentina, Colombia, Perú y Venezuela.</p>
+        </div>
+      </div>
+
+      <!-- ── Glosario ── -->
+      <div class="sec">
+        <h2 class="sec-heading">📖 Glosario — Clase 05</h2>
+        <div class="glossary">
+          <div class="glossary-item"><span class="glossary-term">GetCapabilities</span><span class="glossary-def">Petición que devuelve el catálogo completo del servidor: capas, formatos, SRS.</span></div>
+          <div class="glossary-item"><span class="glossary-term">GetMap</span><span class="glossary-def">Petición WMS que devuelve una imagen renderizada del mapa.</span></div>
+          <div class="glossary-item"><span class="glossary-term">GetFeatureInfo</span><span class="glossary-def">Petición WMS que devuelve atributos del feature en un punto del mapa.</span></div>
+          <div class="glossary-item"><span class="glossary-term">GetLegendGraphic</span><span class="glossary-def">Petición WMS que genera la imagen de la leyenda desde el SLD.</span></div>
+          <div class="glossary-item"><span class="glossary-term">GetFeature</span><span class="glossary-def">Petición WFS que devuelve datos vectoriales (GeoJSON, Shapefile, CSV).</span></div>
+          <div class="glossary-item"><span class="glossary-term">DescribeFeatureType</span><span class="glossary-def">Petición WFS que devuelve la estructura de campos de una capa.</span></div>
+          <div class="glossary-item"><span class="glossary-term">CQL_FILTER</span><span class="glossary-def">Parámetro que envía un filtro CQL al servidor. Funciona en WMS y WFS.</span></div>
+          <div class="glossary-item"><span class="glossary-term">CQL</span><span class="glossary-def">Common Query Language. Lenguaje simple para filtrar datos desde la URL.</span></div>
+          <div class="glossary-item"><span class="glossary-term">LIKE</span><span class="glossary-def">Operador CQL para buscar patrones en texto. <code>%</code> = cualquier texto.</span></div>
+          <div class="glossary-item"><span class="glossary-term">DWITHIN</span><span class="glossary-def">Filtro CQL espacial: features dentro de un radio desde un punto.</span></div>
+          <div class="glossary-item"><span class="glossary-term">SHAPE-ZIP</span><span class="glossary-def">Formato de salida WFS que descarga un shapefile como ZIP.</span></div>
+          <div class="glossary-item"><span class="glossary-term">LEGEND_OPTIONS</span><span class="glossary-def">Parámetros para personalizar la leyenda: fuente, tamaño, color.</span></div>
+        </div>
+      </div>
+
+      <!-- ── Práctica ── -->
+      <div class="practice">
+        <span class="practice-chip">💻 Práctica 05</span>
+        <div class="practice-title">WMS, WFS & CQL</div>
+        <ol class="practice-steps">
+          <li>Prueba <strong>GetCapabilities</strong> de WMS y WFS en el navegador. Busca tus capas en el XML.</li>
+          <li>Construye una URL <strong>GetMap</strong> con 2+ capas superpuestas. Prueba diferentes formatos (PNG, JPEG).</li>
+          <li>Prueba <strong>GetFeatureInfo</strong> en Layer Preview. Cambia <code>info_format</code> a <code>application/json</code> y analiza la respuesta.</li>
+          <li>Genera la leyenda con <strong>GetLegendGraphic</strong> y personaliza con LEGEND_OPTIONS.</li>
+          <li>Descarga una capa como <strong>GeoJSON</strong> y como <strong>SHAPE-ZIP</strong>.</li>
+          <li>Aplica al menos <strong>6 filtros CQL diferentes:</strong> texto exacto, LIKE, numérico, BETWEEN, AND/OR, IN, y uno espacial (BBOX o DWITHIN).</li>
+          <li>Conecta tu GeoServer desde <strong>QGIS como WMS y como WFS</strong>.</li>
+          <li>Aplica un filtro CQL desde QGIS sobre una capa WFS.</li>
+        </ol>
+      </div>
+
+      <div class="challenge">
+        <span class="challenge-chip">🚀 Reto Extra — CQL Dinámico</span>
+        <div class="card-title" style="color:var(--text-primary); margin-bottom:8px;">Filtro interactivo en HTML</div>
+        <p style="font-size:0.9rem;">Crea un archivo HTML con un <code>&lt;input&gt;</code> de texto y un <code>&lt;img&gt;</code>. Al escribir un filtro CQL y presionar Enter, la imagen se actualiza con el mapa filtrado. Es un mini-visor web que adelanta el Módulo 6.</p>
+      </div>
+
+      <div class="sec">
+        <h2 class="sec-heading">✅ Checklist — Clase 05</h2>
+        <ul class="checklist">
+          <li><span class="ck-box"></span> GetCapabilities WMS y WFS probados</li>
+          <li><span class="ck-box"></span> GetMap con múltiples capas</li>
+          <li><span class="ck-box"></span> GetFeatureInfo con formato JSON</li>
+          <li><span class="ck-box"></span> GetLegendGraphic personalizado</li>
+          <li><span class="ck-box"></span> GetFeature en GeoJSON y SHAPE-ZIP</li>
+          <li><span class="ck-box"></span> Al menos 6 filtros CQL diferentes</li>
+          <li><span class="ck-box"></span> CQL espacial (BBOX o DWITHIN)</li>
+          <li><span class="ck-box"></span> GeoServer conectado desde QGIS</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ═══ CUESTIONARIO ═══ -->
+    <div id="t-quiz4" class="tab-panel">
+      <div class="sec">
+        <h2 class="sec-heading">📝 Autoevaluación — Módulo 4</h2>
+        <p class="sec-lead">Verifica tu comprensión de WMS, WFS y CQL.</p>
+      </div>
+
+      <div class="quiz">
+        <div class="quiz-heading">🧠 Cuestionario — 10 preguntas</div>
+
+        <div class="quiz-q" data-qi="1" data-ans="a" data-explain="GetMap devuelve una imagen (PNG/JPEG). GetFeature devuelve datos vectoriales (GeoJSON).">
+          <p class="quiz-q-text"><span class="quiz-q-num">1.</span> ¿Cuál es la diferencia entre GetMap (WMS) y GetFeature (WFS)?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> GetMap devuelve imagen, GetFeature devuelve datos vectoriales</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Son lo mismo pero con diferente nombre</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> GetFeature es más rápido</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> GetMap devuelve datos, GetFeature devuelve imagen</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="2" data-ans="c" data-explain="GetCapabilities devuelve el catálogo completo del servidor con capas y metadatos.">
+          <p class="quiz-q-text"><span class="quiz-q-num">2.</span> ¿Qué petición usas para saber qué capas tiene un servidor WMS?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> GetMap</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> GetFeatureInfo</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> GetCapabilities</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> GetLayers</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="3" data-ans="b" data-explain="Queryable debe estar activado en la pestaña Publishing de la capa.">
+          <p class="quiz-q-text"><span class="quiz-q-num">3.</span> GetFeatureInfo no devuelve datos. ¿Cuál es la causa más probable?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> El SRS es incorrecto</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> La capa no tiene Queryable activado</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> El navegador no soporta JSON</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Falta el parámetro transparent</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="4" data-ans="d" data-explain="SHAPE-ZIP genera un shapefile comprimido que se descarga directamente.">
+          <p class="quiz-q-text"><span class="quiz-q-num">4.</span> ¿Cómo descargas una capa de GeoServer como Shapefile?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Con GetMap format=shapefile</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Desde la interfaz de administración</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Con GetCapabilities</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Con GetFeature outputFormat=SHAPE-ZIP</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="5" data-ans="a" data-explain="CQL filtra en el servidor ANTES de enviar. El cliente recibe solo los datos filtrados.">
+          <p class="quiz-q-text"><span class="quiz-q-num">5.</span> ¿Dónde se ejecuta un filtro CQL?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> En el servidor, antes de enviar los datos</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> En el navegador del usuario</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> En QGIS</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> En la base de datos directamente</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="6" data-ans="c" data-explain="Los textos en CQL van entre comillas simples. Los números no llevan comillas.">
+          <p class="quiz-q-text"><span class="quiz-q-num">6.</span> ¿Cuál filtro CQL es correcto?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> CQL_FILTER=name="Brazil"</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> CQL_FILTER=name=Brazil</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> CQL_FILTER=name='Brazil'</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> CQL_FILTER='name'='Brazil'</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="7" data-ans="b" data-explain="DWITHIN filtra features dentro de un radio desde un punto.">
+          <p class="quiz-q-text"><span class="quiz-q-num">7.</span> ¿Qué filtro CQL usarías para encontrar features a menos de 100 km de un punto?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> BBOX(geom, ...)</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> DWITHIN(geom, POINT(...), 100000, meters)</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> NEAR(geom, POINT(...))</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> RADIUS(geom, 100000)</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="8" data-ans="a" data-explain="DescribeFeatureType devuelve la estructura de campos con nombres y tipos de datos.">
+          <p class="quiz-q-text"><span class="quiz-q-num">8.</span> ¿Cómo verificas los nombres exactos de los campos antes de escribir un filtro CQL?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Con DescribeFeatureType</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Con GetMap</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Con GetCapabilities</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> No se puede verificar</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="9" data-ans="d" data-explain="IN permite filtrar por una lista de valores en una sola condición.">
+          <p class="quiz-q-text"><span class="quiz-q-num">9.</span> ¿Cómo filtras por varios valores de texto a la vez?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> name='A' AND name='B' AND name='C'</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> name BETWEEN 'A' AND 'C'</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> name LIKE 'A,B,C'</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> name IN ('A','B','C')</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="10" data-ans="b" data-explain="La leyenda se genera desde los Title de cada Rule del SLD automáticamente.">
+          <p class="quiz-q-text"><span class="quiz-q-num">10.</span> ¿De dónde toma GeoServer la información para generar la leyenda?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> De los metadatos de la capa</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> De los Title de cada Rule del estilo SLD</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> De la tabla de atributos</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Se crea manualmente</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <button class="quiz-submit">Verificar Respuestas</button>
+        <div class="quiz-result"></div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <a href="../modulo-03/index.html" class="btn-nav btn-prev">← Módulo 3</a>
+      <a href="../modulo-05/index.html" class="btn-nav btn-next">Módulo 5 — Seguridad →</a>
+    </div>
+
+  </main>
+</div>
+<script src="../js/course.js"></script>
+</body>
+</html>
