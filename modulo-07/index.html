@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Módulo 7 · GeoWebCache & Deploy — ARTECLAB</title>
+  <link rel="stylesheet" href="../css/course.css">
+  <link rel="icon" href="../img/logo-arteclab.png" type="image/png">
+</head>
+<body>
+<div class="site-wrapper">
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="../index.html" class="topbar-brand">
+        <img src="../img/logo-arteclab.png" alt="ARTECLAB">
+        <span>/</span>
+        <span class="brand-course">GeoServer</span>
+      </a>
+      <nav class="topbar-nav">
+        <a href="../index.html">Inicio</a>
+        <a href="../modulo-06/index.html">Módulo 6</a>
+        <a href="index.html" class="active">Módulo 7</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <div class="mod-header">
+      <span class="mod-chip">Módulo 7 de 7 · Final</span>
+      <h1 class="mod-title">GeoWebCache &<br>Deploy en Producción ☁️</h1>
+      <p class="mod-desc">Optimiza el rendimiento con tile caching y despliega GeoServer en la nube. Tu servidor queda accesible desde cualquier parte del mundo.</p>
+      <div class="mod-stats">
+        <span class="mod-stat">📅 Clase 8</span>
+        <span class="mod-stat">⏱️ 2 horas</span>
+        <span class="mod-stat">🎯 Intermedio-Avanzado</span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-target="t-clase08">Clase 08 — Cache & Deploy</button>
+      <button class="tab-btn" data-target="t-quiz7">📝 Cuestionario</button>
+    </div>
+
+    <!-- ═══ CLASE 08 ═══ -->
+    <div id="t-clase08" class="tab-panel active">
+
+      <div class="sec">
+        <h2 class="sec-heading">🎯 Objetivo</h2>
+        <p class="sec-lead">Entender y configurar GeoWebCache para acelerar tu servidor, y desplegar GeoServer en un servidor Linux en la nube accesible desde internet.</p>
+      </div>
+
+      <!-- ═══ PARTE 1: GEOWEBCACHE ═══ -->
+      <div class="sec">
+        <h2 class="sec-heading">⚡ Parte 1 — GeoWebCache: Rendimiento</h2>
+
+        <div class="card">
+          <div class="card-title">¿Por qué los mapas pueden ser lentos?</div>
+          <p>Cada vez que un usuario ve el mapa en tu visor web o app, GeoServer hace lo siguiente:</p>
+          <div style="background:var(--bg-surface); padding:16px; border-radius:var(--radius-sm); margin:12px 0; border:1px solid var(--border-subtle); font-size:0.88rem; line-height:2;">
+            1. Recibe la petición WMS (GetMap)<br>
+            2. Lee los datos de la fuente (PostGIS, Shapefile)<br>
+            3. Aplica el estilo SLD (clasificación, colores, etiquetas)<br>
+            4. Renderiza la imagen PNG/JPEG<br>
+            5. Envía la imagen al cliente
+          </div>
+          <p>Los pasos 2, 3 y 4 consumen CPU y memoria. Si tienes 100 usuarios simultáneos, GeoServer repite este proceso <strong>para cada uno</strong>. Con datos pesados (millones de polígonos) o estilos complejos (etiquetas + clasificación), el servidor se sobrecarga y los mapas se cargan lento.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">¿Qué es GeoWebCache?</div>
+          <p>GeoWebCache es un sistema de <strong>tile caching</strong> integrado en GeoServer. La idea es simple: la primera vez que alguien pide un tile, GeoServer lo renderiza y lo guarda en disco. La segunda vez que alguien pide el mismo tile, <strong>lo sirve directamente del disco sin renderizar de nuevo</strong>.</p>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;">
+            <div style="background:rgba(239,68,68,0.08); padding:16px; border-radius:var(--radius-sm);">
+              <strong style="color:var(--red-500);">Sin cache</strong><br>
+              <span style="font-size:0.85rem;">Cada petición: leer datos → aplicar estilo → renderizar → enviar. <strong>~200-500ms</strong> por tile.</span>
+            </div>
+            <div style="background:var(--teal-glow); padding:16px; border-radius:var(--radius-sm);">
+              <strong style="color:var(--teal-400);">Con cache</strong><br>
+              <span style="font-size:0.85rem;">Primera vez: renderiza y guarda. Después: lee del disco y envía. <strong>~5-20ms</strong> por tile.</span>
+            </div>
+          </div>
+
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div><strong>Es como cocinar en un restaurante.</strong> Sin cache: preparas cada plato desde cero cuando lo piden. Con cache: preparas los platos más pedidos por adelantado y los sirves del aparador. El resultado es el mismo pero 10-50x más rápido.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">¿Qué es un tile?</div>
+          <p>Un tile es una imagen cuadrada (generalmente 256×256 píxeles) que representa una porción del mapa en un nivel de zoom específico. El mapa completo se divide en una cuadrícula de tiles.</p>
+
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Concepto</span></div>
+            <pre><span class="hl-cm">Zoom 0:   1 tile    (el mundo entero)</span>
+<span class="hl-cm">Zoom 1:   4 tiles   (2×2)</span>
+<span class="hl-cm">Zoom 2:   16 tiles  (4×4)</span>
+<span class="hl-cm">Zoom 3:   64 tiles  (8×8)</span>
+<span class="hl-cm">...</span>
+<span class="hl-cm">Zoom 10:  ~1 millón de tiles</span>
+<span class="hl-cm">Zoom 18:  ~69 mil millones de tiles (nivel calle)</span></pre>
+          </div>
+
+          <p style="margin-top:10px;">Cuando mueves o haces zoom en el mapa, el visor pide solo los tiles visibles. GeoWebCache guarda los que ya se generaron para no recalcularlos.</p>
+
+          <div class="callout callout--info">
+            <span class="callout-icon">💡</span>
+            <div><strong>Google Maps, OpenStreetMap, Mapbox</strong> — todos funcionan con tiles precalculados. Es el estándar de la industria para servir mapas rápidamente. GeoWebCache aplica este mismo concepto a tus capas de GeoServer.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Configurar caching en GeoServer</div>
+          <p>GeoWebCache ya viene integrado en GeoServer 2.28.2. Solo necesitas activar y configurar el caching por capa:</p>
+
+          <p style="margin-top:12px;"><strong>Paso 1 — Verificar que está activo:</strong></p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">URL</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>http://localhost:8080/geoserver/gwc/</pre>
+          </div>
+          <p style="margin-top:6px;">Si ves la interfaz de GeoWebCache, está activo.</p>
+
+          <p style="margin-top:14px;"><strong>Paso 2 — Activar cache por capa:</strong></p>
+          <p>Menú lateral → <strong>Tile Caching</strong> → <strong>Tile Layers</strong> → clic en tu capa → pestaña <strong>Tile Caching</strong></p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Configuración</span></div>
+            <pre><span class="hl-cm">Enable tile caching:  ✓</span>
+<span class="hl-cm">Tile image formats:   image/png, image/jpeg</span>
+<span class="hl-cm">Gridsets:             EPSG:4326, EPSG:900913</span>
+<span class="hl-cm">Metatiling:           4×4 (genera 16 tiles de una vez — más eficiente)</span>
+<span class="hl-cm">Gutter:               0</span></pre>
+          </div>
+
+          <p style="margin-top:14px;"><strong>Paso 3 — Pre-generar tiles (seeding):</strong></p>
+          <p>En vez de esperar a que los usuarios pidan los tiles, puedes precalcularlos:</p>
+          <p style="margin-top:6px;">Tile Caching → Tile Layers → tu capa → <strong>Seed / Truncate</strong></p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Configuración de seed</span></div>
+            <pre><span class="hl-cm">Number of tasks:  2 (hilos paralelos)</span>
+<span class="hl-cm">Type of operation: Seed (generar)</span>
+<span class="hl-cm">Grid set:          EPSG:4326</span>
+<span class="hl-cm">Format:            image/png</span>
+<span class="hl-cm">Zoom start:        0</span>
+<span class="hl-cm">Zoom stop:         10 (no ir más allá sin necesidad)</span></pre>
+          </div>
+
+          <div class="callout callout--warn">
+            <span class="callout-icon">⚠️</span>
+            <div><strong>Cuidado con el zoom máximo del seed.</strong> Cada nivel de zoom multiplica los tiles por 4. Un seed hasta zoom 18 para una capa de un país entero puede generar millones de tiles y llenar tu disco. Empieza con zoom 10 y sube gradualmente según necesites.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">¿Cuándo invalidar el cache?</div>
+          <p>Si los datos cambian (actualizaste la tabla en PostGIS, cambiaste el estilo SLD), los tiles cacheados quedan obsoletos. Necesitas <strong>truncar</strong> el cache:</p>
+          <p style="margin-top:8px;">Tile Caching → Tile Layers → tu capa → <strong>Seed / Truncate</strong> → Type: <strong>Truncate</strong></p>
+          <p style="margin-top:8px;">Esto borra los tiles guardados. La próxima vez que alguien pida el mapa, GeoServer regenera los tiles con los datos actualizados.</p>
+
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div><strong>Regla práctica:</strong> Si los datos cambian a diario → no usar cache (o cache de corta duración). Si cambian cada semana/mes → cache + truncate manual cuando actualices. Si son estáticos → cache agresivo con seed completo.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ PARTE 2: DEPLOY ═══ -->
+      <div class="sec">
+        <h2 class="sec-heading">☁️ Parte 2 — Deploy en la Nube</h2>
+
+        <div class="card">
+          <div class="card-title">¿Por qué deploy en la nube?</div>
+          <p>Hasta ahora tu GeoServer corre en <code>localhost</code> — solo tú puedes acceder. Para que otros lo usen (colegas, clientes, el público), necesitas ponerlo en un servidor accesible desde internet.</p>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:14px 0;">
+            <div style="background:var(--bg-surface); padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
+              <strong style="color:var(--text-primary);">localhost</strong><br>
+              <span style="font-size:0.85rem;">Solo tú. Desde tu máquina. Si apagas la PC, el servidor muere.</span>
+            </div>
+            <div style="background:var(--teal-glow); padding:14px; border-radius:var(--radius-sm);">
+              <strong style="color:var(--teal-400);">Servidor en la nube</strong><br>
+              <span style="font-size:0.85rem;">Cualquiera con la URL. 24/7 disponible. IP pública o dominio propio.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Google Cloud — Free Tier (3 meses gratis)</div>
+          <p>Google Cloud ofrece <strong>$300 USD de crédito gratis por 3 meses</strong> para cuentas nuevas. Suficiente para correr un servidor GeoServer pequeño durante el curso y prácticas.</p>
+
+          <p style="margin-top:12px;"><strong>Lo que necesitas:</strong></p>
+          <div class="glossary">
+            <div class="glossary-item"><span class="glossary-term">Cuenta Google</span><span class="glossary-def">Tu cuenta Gmail normal. Registrarte en <a href="https://cloud.google.com/free" target="_blank">cloud.google.com/free</a></span></div>
+            <div class="glossary-item"><span class="glossary-term">Tarjeta de crédito/débito</span><span class="glossary-def">Google la pide para verificar identidad. NO te cobra mientras estés en el free tier.</span></div>
+            <div class="glossary-item"><span class="glossary-term">VM instance</span><span class="glossary-def">Una máquina virtual Linux en la nube. Es como tu PC pero en los servidores de Google.</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Paso 1 — Crear la máquina virtual</div>
+          <p>En Google Cloud Console → <strong>Compute Engine</strong> → <strong>VM Instances</strong> → <strong>Create Instance</strong></p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Configuración de la VM</span></div>
+            <pre><span class="hl-cm">Name:           geoserver-curso</span>
+<span class="hl-cm">Region:         southamerica-east1 (São Paulo — más cercano)</span>
+<span class="hl-cm">Machine type:   e2-medium (2 vCPU, 4 GB RAM)</span>
+<span class="hl-cm">Boot disk:      Ubuntu 22.04 LTS, 30 GB SSD</span>
+<span class="hl-cm">Firewall:       ✓ Allow HTTP traffic</span>
+<span class="hl-cm">                ✓ Allow HTTPS traffic</span></pre>
+          </div>
+          <div class="callout callout--info">
+            <span class="callout-icon">💡</span>
+            <div><strong>e2-medium (4 GB RAM)</strong> es suficiente para GeoServer con datos pequeños/medianos. Para producción con muchos usuarios necesitarías más RAM. Pero para el curso y prácticas está perfecto.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Paso 2 — Conectarse por SSH</div>
+          <p>En la lista de VMs, clic en <strong>SSH</strong> junto a tu instancia. Se abre una terminal en el navegador.</p>
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div>Google Cloud abre la terminal SSH directamente en el navegador. No necesitas PuTTY ni configurar llaves SSH manualmente.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Paso 3 — Instalar Java + Tomcat + GeoServer</div>
+          <p>Los mismos pasos que hiciste en tu máquina local en la Clase 1, pero en el servidor cloud:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Bash — En la terminal SSH</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm"># 1. Actualizar sistema</span>
+sudo apt update && sudo apt upgrade -y
+
+<span class="hl-cm"># 2. Instalar Java</span>
+sudo apt install openjdk-11-jdk -y
+java -version
+
+<span class="hl-cm"># 3. Instalar Tomcat 9</span>
+sudo apt install tomcat9 tomcat9-admin -y
+sudo systemctl enable tomcat9
+sudo systemctl start tomcat9
+
+<span class="hl-cm"># 4. Configurar memoria para GeoServer</span>
+sudo nano /usr/share/tomcat9/bin/setenv.sh
+<span class="hl-cm"># Escribir: export CATALINA_OPTS="-Xms512m -Xmx2048m"</span>
+<span class="hl-cm"># Guardar: Ctrl+O, Enter, Ctrl+X</span>
+
+<span class="hl-cm"># 5. Descargar GeoServer 2.28.2 WAR</span>
+cd /tmp
+wget https://sourceforge.net/projects/geoserver/files/GeoServer/2.28.2/geoserver-2.28.2-war.zip
+sudo apt install unzip -y
+unzip geoserver-2.28.2-war.zip
+sudo cp geoserver.war /var/lib/tomcat9/webapps/
+
+<span class="hl-cm"># 6. Reiniciar Tomcat</span>
+sudo systemctl restart tomcat9
+
+<span class="hl-cm"># 7. Esperar ~60 segundos</span>
+<span class="hl-cm"># Abrir: http://IP_EXTERNA:8080/geoserver</span></pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Paso 4 — Abrir el puerto 8080</div>
+          <p>Por defecto Google Cloud bloquea puertos que no sean 80 (HTTP) y 443 (HTTPS). Necesitas abrir el 8080:</p>
+          <p style="margin-top:8px;">Google Cloud Console → <strong>VPC Network</strong> → <strong>Firewall</strong> → <strong>Create Firewall Rule</strong></p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Configuración firewall</span></div>
+            <pre><span class="hl-cm">Name:             allow-geoserver</span>
+<span class="hl-cm">Direction:        Ingress</span>
+<span class="hl-cm">Target:           All instances</span>
+<span class="hl-cm">Source IP ranges: 0.0.0.0/0</span>
+<span class="hl-cm">Protocols/ports:  TCP: 8080</span></pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Paso 5 — Acceder desde cualquier parte del mundo</div>
+          <p>Busca la <strong>IP externa</strong> de tu VM en la lista de instancias. Abre en el navegador:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">URL</span><button class="codeblock-copy">Copiar</button></div>
+            <pre>http://TU_IP_EXTERNA:8080/geoserver</pre>
+          </div>
+          <p style="margin-top:8px;">Si ves la interfaz de GeoServer, <strong>tu servidor está en producción</strong>. Cualquier persona del mundo puede acceder con esa URL.</p>
+          <div class="callout callout--danger">
+            <span class="callout-icon">⚠️</span>
+            <div><strong>¡Cambia la contraseña de admin INMEDIATAMENTE!</strong> Tu servidor ahora es público. Si dejas admin/geoserver, cualquiera puede entrar. Aplica todo lo del Módulo 5 (seguridad).</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Paso 6 — Subir datos al servidor</div>
+          <p>Opción más simple para copiar shapefiles al servidor:</p>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Bash — Desde tu PC local</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm"># Usando gcloud CLI (instalar desde cloud.google.com/sdk)</span>
+gcloud compute scp ./mis_datos/*.shp geoserver-curso:/tmp/ --zone=southamerica-east1-a
+
+<span class="hl-cm"># En el servidor SSH, mover a carpeta de datos</span>
+sudo mkdir -p /opt/geodatos
+sudo mv /tmp/*.shp /opt/geodatos/
+sudo chown -R tomcat:tomcat /opt/geodatos</pre>
+          </div>
+          <p style="margin-top:8px;">Alternativa: instalar PostGIS en el servidor y conectar remotamente desde PgAdmin.</p>
+        </div>
+      </div>
+
+      <!-- ── Mantenimiento ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🔧 Mantenimiento Básico del Servidor</h2>
+
+        <div class="card">
+          <div class="card-title">Comandos esenciales</div>
+          <div class="codeblock">
+            <div class="codeblock-bar"><span class="codeblock-lang">Bash — Comandos del día a día</span><button class="codeblock-copy">Copiar</button></div>
+            <pre><span class="hl-cm"># Ver estado de Tomcat</span>
+sudo systemctl status tomcat9
+
+<span class="hl-cm"># Reiniciar Tomcat (reinicia GeoServer)</span>
+sudo systemctl restart tomcat9
+
+<span class="hl-cm"># Ver logs en tiempo real</span>
+sudo tail -f /var/log/tomcat9/catalina.out
+
+<span class="hl-cm"># Ver uso de disco</span>
+df -h
+
+<span class="hl-cm"># Ver uso de memoria</span>
+free -h
+
+<span class="hl-cm"># Ver procesos</span>
+htop</pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Checklist de producción</div>
+          <div style="display:grid; gap:10px;">
+            <div style="display:flex; gap:10px; align-items:flex-start;">
+              <span style="color:var(--teal-400); font-weight:800;">1</span>
+              <div><strong style="color:var(--text-primary);">Contraseña de admin cambiada</strong> <span style="font-size:0.83rem; color:var(--text-muted);">— Módulo 5</span></div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:flex-start;">
+              <span style="color:var(--teal-400); font-weight:800;">2</span>
+              <div><strong style="color:var(--text-primary);">Roles y reglas de acceso configurados</strong> <span style="font-size:0.83rem; color:var(--text-muted);">— Módulo 5</span></div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:flex-start;">
+              <span style="color:var(--teal-400); font-weight:800;">3</span>
+              <div><strong style="color:var(--text-primary);">CORS configurado</strong> <span style="font-size:0.83rem; color:var(--text-muted);">— Módulo 6</span></div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:flex-start;">
+              <span style="color:var(--teal-400); font-weight:800;">4</span>
+              <div><strong style="color:var(--text-primary);">GeoWebCache activo con seed en capas principales</strong> <span style="font-size:0.83rem; color:var(--text-muted);">— Este módulo</span></div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:flex-start;">
+              <span style="color:var(--teal-400); font-weight:800;">5</span>
+              <div><strong style="color:var(--text-primary);">Memoria configurada</strong> <span style="font-size:0.83rem; color:var(--text-muted);">— setenv.sh con Xmx adecuado</span></div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:flex-start;">
+              <span style="color:var(--teal-400); font-weight:800;">6</span>
+              <div><strong style="color:var(--text-primary);">Backup del data_dir configurado</strong> <span style="font-size:0.83rem; color:var(--text-muted);">— Copia periódica de la configuración</span></div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:flex-start;">
+              <span style="color:var(--teal-400); font-weight:800;">7</span>
+              <div><strong style="color:var(--text-primary);">HTTPS (futuro)</strong> <span style="font-size:0.83rem; color:var(--text-muted);">— Certificado SSL con Let's Encrypt + Nginx reverse proxy</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Lo que construiste ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🎓 Lo que Construiste en 4 Semanas</h2>
+        <div class="card">
+          <div style="display:grid; gap:1px; background:var(--border-subtle); border-radius:var(--radius-md); overflow:hidden;">
+            <div style="display:grid; grid-template-columns:auto 1fr 1fr; gap:16px; padding:12px 16px; background:var(--bg-raised); font-size:0.85rem; font-weight:700; color:var(--teal-400);">
+              <span>Módulo</span><span>Lo que aprendiste</span><span>Lo que lograste</span>
+            </div>
+            <div style="display:grid; grid-template-columns:auto 1fr 1fr; gap:16px; padding:10px 16px; background:var(--bg-raised); font-size:0.85rem;">
+              <span>1</span><span>Arquitectura, instalación</span><span>GeoServer corriendo + primera capa</span>
+            </div>
+            <div style="display:grid; grid-template-columns:auto 1fr 1fr; gap:16px; padding:10px 16px; background:var(--bg-raised); font-size:0.85rem;">
+              <span>2</span><span>Shapefile, PostGIS, metadatos</span><span>Datos publicados profesionalmente</span>
+            </div>
+            <div style="display:grid; grid-template-columns:auto 1fr 1fr; gap:16px; padding:10px 16px; background:var(--bg-raised); font-size:0.85rem;">
+              <span>3</span><span>SLD, clasificación, etiquetas</span><span>Mapas con simbología profesional</span>
+            </div>
+            <div style="display:grid; grid-template-columns:auto 1fr 1fr; gap:16px; padding:10px 16px; background:var(--bg-raised); font-size:0.85rem;">
+              <span>4</span><span>WMS, WFS, CQL</span><span>Servicios configurados + consultas dinámicas</span>
+            </div>
+            <div style="display:grid; grid-template-columns:auto 1fr 1fr; gap:16px; padding:10px 16px; background:var(--bg-raised); font-size:0.85rem;">
+              <span>5</span><span>Usuarios, roles, reglas</span><span>Servidor protegido</span>
+            </div>
+            <div style="display:grid; grid-template-columns:auto 1fr 1fr; gap:16px; padding:10px 16px; background:var(--bg-raised); font-size:0.85rem;">
+              <span>6</span><span>Leaflet, Flutter</span><span>Visor web + demo móvil</span>
+            </div>
+            <div style="display:grid; grid-template-columns:auto 1fr 1fr; gap:16px; padding:10px 16px; background:var(--bg-raised); font-size:0.85rem;">
+              <span>7</span><span>Cache, deploy</span><span>Servidor público en la nube</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Glosario ── -->
+      <div class="sec">
+        <h2 class="sec-heading">📖 Glosario — Clase 08</h2>
+        <div class="glossary">
+          <div class="glossary-item"><span class="glossary-term">GeoWebCache</span><span class="glossary-def">Sistema de tile caching integrado en GeoServer. Guarda tiles renderizados para servirlos rápidamente.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Tile</span><span class="glossary-def">Imagen cuadrada (256×256px) que representa una porción del mapa en un nivel de zoom.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Seed</span><span class="glossary-def">Proceso de precalcular tiles y guardarlos en disco antes de que los usuarios los pidan.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Truncate</span><span class="glossary-def">Borrar tiles cacheados. Necesario cuando los datos o estilos cambian.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Metatiling</span><span class="glossary-def">Generar múltiples tiles de una sola imagen grande. Más eficiente que generar uno por uno.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Gridset</span><span class="glossary-def">Esquema de cuadrícula que define cómo se dividen los tiles. Ej: EPSG:4326, EPSG:900913.</span></div>
+          <div class="glossary-item"><span class="glossary-term">VM (Virtual Machine)</span><span class="glossary-def">Computadora virtual en la nube. Funciona como una PC real pero está en servidores de Google/AWS/Azure.</span></div>
+          <div class="glossary-item"><span class="glossary-term">IP externa</span><span class="glossary-def">Dirección IP pública del servidor en la nube. Es lo que pones en la URL para acceder desde internet.</span></div>
+          <div class="glossary-item"><span class="glossary-term">SSH</span><span class="glossary-def">Protocolo para conectarte remotamente a un servidor Linux por terminal de comandos.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Free tier</span><span class="glossary-def">Nivel gratuito de Google Cloud: $300 USD de crédito por 3 meses para cuentas nuevas.</span></div>
+          <div class="glossary-item"><span class="glossary-term">Firewall rule</span><span class="glossary-def">Regla que abre o cierra puertos en el servidor. Sin regla para 8080, nadie puede acceder a GeoServer.</span></div>
+          <div class="glossary-item"><span class="glossary-term">data_dir</span><span class="glossary-def">Carpeta de GeoServer donde se almacena toda la configuración: capas, estilos, seguridad. Hacer backup.</span></div>
+        </div>
+      </div>
+
+      <!-- ── Práctica ── -->
+      <div class="practice">
+        <span class="practice-chip">💻 Práctica 08</span>
+        <div class="practice-title">Cache + Deploy</div>
+        <ol class="practice-steps">
+          <li>Verifica que GeoWebCache está activo en <code>http://localhost:8080/geoserver/gwc/</code></li>
+          <li>Activa <strong>tile caching</strong> para al menos 2 capas de tu GeoServer local.</li>
+          <li>Ejecuta un <strong>seed</strong> de zoom 0 a 8 para una capa. Verifica que los tiles se generan.</li>
+          <li>Compara la velocidad: carga el mapa en Layer Preview sin cache vs con cache. Abre F12 → Network para ver los tiempos.</li>
+          <li>Crea una cuenta en <strong>Google Cloud</strong> (cloud.google.com/free).</li>
+          <li>Crea una <strong>VM</strong> con Ubuntu 22.04 y 4 GB RAM.</li>
+          <li>Instala <strong>Java + Tomcat + GeoServer</strong> en la VM vía SSH.</li>
+          <li>Abre el <strong>puerto 8080</strong> en el firewall de Google Cloud.</li>
+          <li>Accede a <code>http://TU_IP:8080/geoserver</code> desde tu navegador local.</li>
+          <li><strong>Cambia la contraseña de admin</strong> inmediatamente.</li>
+        </ol>
+      </div>
+
+      <div class="challenge">
+        <span class="challenge-chip">🚀 Reto Extra — Visor público</span>
+        <div class="card-title" style="color:var(--text-primary); margin-bottom:8px;">Tu visor web accesible desde internet</div>
+        <p style="font-size:0.9rem;">Sube datos a tu GeoServer en la nube, publica capas con estilos, y modifica tu visor Leaflet (Módulo 6) para que apunte a la IP pública del servidor. Comparte la URL del visor con alguien de otra ciudad y verifica que puede ver tu mapa.</p>
+      </div>
+
+      <div class="sec">
+        <h2 class="sec-heading">✅ Checklist Final</h2>
+        <ul class="checklist">
+          <li><span class="ck-box"></span> GeoWebCache activo y configurado</li>
+          <li><span class="ck-box"></span> Seed ejecutado para al menos 1 capa</li>
+          <li><span class="ck-box"></span> Diferencia de velocidad verificada (con vs sin cache)</li>
+          <li><span class="ck-box"></span> VM creada en Google Cloud</li>
+          <li><span class="ck-box"></span> GeoServer instalado en la nube</li>
+          <li><span class="ck-box"></span> Puerto 8080 abierto en firewall</li>
+          <li><span class="ck-box"></span> GeoServer accesible desde IP pública</li>
+          <li><span class="ck-box"></span> Contraseña de admin cambiada</li>
+          <li><span class="ck-box"></span> 🎉 ¡Curso completado!</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ═══ CUESTIONARIO ═══ -->
+    <div id="t-quiz7" class="tab-panel">
+      <div class="sec">
+        <h2 class="sec-heading">📝 Autoevaluación Final — Módulo 7</h2>
+        <p class="sec-lead">Última autoevaluación del curso. GeoWebCache, deploy y producción.</p>
+      </div>
+
+      <div class="quiz">
+        <div class="quiz-heading">🧠 Cuestionario Final — 8 preguntas</div>
+
+        <div class="quiz-q" data-qi="1" data-ans="c" data-explain="GeoWebCache guarda tiles renderizados en disco para no recalcularlos en cada petición.">
+          <p class="quiz-q-text"><span class="quiz-q-num">1.</span> ¿Qué hace GeoWebCache?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Comprime los datos geográficos</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Convierte shapefiles a PostGIS</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Guarda tiles renderizados para servirlos más rápido</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Genera estilos SLD automáticamente</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="2" data-ans="a" data-explain="Un tile es una imagen de 256×256 píxeles que representa una porción del mapa.">
+          <p class="quiz-q-text"><span class="quiz-q-num">2.</span> ¿Qué es un tile?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Una imagen cuadrada (256×256px) de una porción del mapa</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Un archivo shapefile comprimido</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Un filtro CQL</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Un tipo de base de datos</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="3" data-ans="b" data-explain="Seed precalcula tiles antes de que los usuarios los pidan. Se guardan en disco.">
+          <p class="quiz-q-text"><span class="quiz-q-num">3.</span> ¿Qué es el proceso de "seed" en GeoWebCache?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Borrar tiles obsoletos</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Precalcular y guardar tiles antes de que los pidan</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Configurar el estilo de la capa</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Publicar una nueva capa</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="4" data-ans="d" data-explain="Truncate borra los tiles cacheados para que se regeneren con datos/estilos actualizados.">
+          <p class="quiz-q-text"><span class="quiz-q-num">4.</span> ¿Cuándo necesitas hacer "truncate" del cache?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Cada vez que un usuario ve el mapa</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Al reiniciar Tomcat</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Al agregar un nuevo usuario</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Cuando los datos o estilos cambian</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="5" data-ans="a" data-explain="Cada nivel de zoom multiplica los tiles por 4. Zoom alto = millones de tiles = disco lleno.">
+          <p class="quiz-q-text"><span class="quiz-q-num">5.</span> ¿Por qué es peligroso hacer seed hasta zoom 18?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Genera millones de tiles que pueden llenar el disco</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Los tiles se ven borrosos</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> GeoServer deja de funcionar</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> No es peligroso</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="6" data-ans="c" data-explain="Sin regla de firewall para el puerto 8080, nadie puede acceder a GeoServer desde internet.">
+          <p class="quiz-q-text"><span class="quiz-q-num">6.</span> ¿Qué necesitas configurar en Google Cloud para que GeoServer sea accesible?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Un dominio .com</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Un certificado SSL</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Una regla de firewall que abra el puerto 8080</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Una base de datos MySQL</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="7" data-ans="b" data-explain="La contraseña por defecto es pública. En un servidor accesible desde internet, es lo primero que atacan.">
+          <p class="quiz-q-text"><span class="quiz-q-num">7.</span> ¿Qué es lo PRIMERO que haces después de instalar GeoServer en la nube?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Publicar una capa</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Cambiar la contraseña de admin</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> Configurar GeoWebCache</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Instalar QGIS en el servidor</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <div class="quiz-q" data-qi="8" data-ans="d" data-explain="data_dir contiene toda la configuración: capas, estilos, seguridad, stores. Si se pierde, se pierde todo.">
+          <p class="quiz-q-text"><span class="quiz-q-num">8.</span> ¿Qué carpeta de GeoServer debes respaldar periódicamente?</p>
+          <div class="quiz-opts">
+            <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> La carpeta webapps de Tomcat</div>
+            <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> La carpeta bin de Java</div>
+            <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> La carpeta de logs</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> El data_dir (configuración de GeoServer)</div>
+          </div>
+          <div class="quiz-fb"></div>
+        </div>
+
+        <button class="quiz-submit">Verificar Respuestas</button>
+        <div class="quiz-result"></div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <a href="../modulo-06/index.html" class="btn-nav btn-prev">← Módulo 6</a>
+      <a href="../index.html" class="btn-nav btn-next" style="background:linear-gradient(135deg, #22c55e, #059669);">🎉 Volver al Inicio — ¡Curso Completado!</a>
+    </div>
+
+  </main>
+</div>
+<script src="../js/course.js"></script>
+</body>
+</html>
