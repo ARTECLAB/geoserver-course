@@ -84,7 +84,7 @@ En este curso usamos **WAR + Tomcat** desde el día 1 porque:
 
 ### Requisitos previos
 
-- **Java 11+** (OpenJDK recomendado)
+- **Java 21+** (OpenJDK recomendado)
 - **Apache Tomcat 9.x** (compatible con GeoServer 2.28.2)
 - Al menos 2GB RAM disponibles
 - Puerto 8080 libre (Tomcat lo usa por defecto)
@@ -93,7 +93,7 @@ En este curso usamos **WAR + Tomcat** desde el día 1 porque:
 
 ```powershell
 # ── 1. Instalar Java ──
-# Descargar OpenJDK 11 desde https://adoptium.net/
+# Descargar OpenJDK 21 desde https://adoptium.net/
 # Ejecutar el instalador, marcar "Set JAVA_HOME" durante la instalación
 # Verificar:
 java -version
@@ -130,7 +130,7 @@ startup.bat
 ```bash
 # ── 1. Instalar Java ──
 sudo apt update
-sudo apt install openjdk-11-jdk -y
+sudo apt install openjdk-21-jdk -y
 java -version
 
 # ── 2. Instalar Tomcat 9 ──
