@@ -133,7 +133,7 @@
           <div class="card-title">Requisitos previos</div>
           <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin:12px 0;">
             <div style="background:var(--bg-surface); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); font-size:0.88rem;">
-              <strong>Java 11+</strong> — GeoServer está escrito en Java. Sin Java, no arranca.
+              <strong>Java 21+</strong> — GeoServer está escrito en Java. Sin Java, no arranca.
             </div>
             <div style="background:var(--bg-surface); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); font-size:0.88rem;">
               <strong>2 GB RAM</strong> — mínimo libre para que GeoServer funcione bien.
@@ -154,7 +154,7 @@
           <div class="codeblock">
             <div class="codeblock-bar"><span class="codeblock-lang">PowerShell</span><button class="codeblock-copy">Copiar</button></div>
             <pre><span class="hl-cm"># ── 1. Verificar que Java está instalado ──</span>
-<span class="hl-cm"># Si no lo tienes: descargar OpenJDK 11 de https://adoptium.net/</span>
+<span class="hl-cm"># Si no lo tienes: descargar OpenJDK 21 de https://adoptium.net/</span>
 java -version
 
 <span class="hl-cm"># ── 2. Instalar Apache Tomcat 9 ──</span>
@@ -188,7 +188,7 @@ startup.bat
             <div class="codeblock-bar"><span class="codeblock-lang">Bash</span><button class="codeblock-copy">Copiar</button></div>
             <pre><span class="hl-cm"># ── 1. Instalar Java ──</span>
 sudo apt update
-sudo apt install openjdk-11-jdk -y
+sudo apt install openjdk-21-jdk -y
 java -version
 
 <span class="hl-cm"># ── 2. Instalar Tomcat 9 ──</span>
@@ -477,7 +477,7 @@ SRS:      EPSG:4326
             <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Python</div>
             <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Node.js</div>
             <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> PostgreSQL</div>
-            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Java (JDK 11+)</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Java (JDK 21)</div>
           </div>
           <div class="quiz-fb"></div>
         </div>
