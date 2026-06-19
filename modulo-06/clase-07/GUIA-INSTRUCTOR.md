@@ -123,9 +123,9 @@ Mostrar `setParams({ CQL_FILTER: cql })` y cómo Leaflet recarga la capa.
 
 **Sin CORS, el visor web NO puede conectarse a GeoServer.** El navegador bloquea las peticiones.
 
-### Habilitar CORS en GeoServer (Tomcat)
+### Habilitar CORS en GeoServer (Tomcat 11)
 
-Editar `webapps/geoserver/WEB-INF/web.xml` y agregar ANTES de `</web-app>`:
+`org.apache.catalina.filters.CorsFilter` es un filtro propio de Tomcat — funciona igual en Tomcat 9, 10 y 11, así que este bloque no cambió con la migración a GeoServer 3.0. Editar `webapps/geoserver/WEB-INF/web.xml` y agregar ANTES de `</web-app>`:
 
 ```xml
 <filter>

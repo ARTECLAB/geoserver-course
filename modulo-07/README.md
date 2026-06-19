@@ -11,7 +11,7 @@
 - Ejecutar seed y truncate por capa
 - Comparar rendimiento con y sin cache
 - Crear VM en Google Cloud con free tier
-- Instalar Java + Tomcat 9 + GeoServer 2.28.2 WAR en la nube
+- Instalar Java 17 + Tomcat 11 + GeoServer 3.0.0 WAR en la nube
 - Abrir puertos y acceder públicamente
 - Subir datos y verificar acceso remoto
 - Aplicar checklist de producción
@@ -93,7 +93,7 @@ Si agregas zoom 11-14 para zonas urbanas: +500 MB. Zoom 15+: +varios GB.
 La secuencia de la demo:
 
 1. Abrir Google Cloud Console
-2. Crear VM → e2-medium, Ubuntu 22.04, 30 GB
+2. Crear VM → e2-medium, Debian 13 (Trixie), 30 GB
 3. SSH desde el navegador
 4. Instalar Java + Tomcat + GeoServer (copiar los comandos del README)
 5. Abrir puerto 8080 en firewall
@@ -111,30 +111,30 @@ La secuencia de la demo:
 # ── Sistema ──
 sudo apt update && sudo apt upgrade -y
 
-# ── Java ──
-sudo apt install openjdk-11-jdk -y
+# ── Java 17 ──
+sudo apt install openjdk-17-jdk -y
 
-# ── Tomcat 9 ──
-sudo apt install tomcat9 tomcat9-admin -y
-sudo systemctl enable tomcat9
+# ── Tomcat 11 ──
+sudo apt install tomcat11 -y
+sudo systemctl enable tomcat11
 
 # ── Memoria ──
-sudo bash -c 'cat > /usr/share/tomcat9/bin/setenv.sh << EOF
+sudo bash -c 'cat > /usr/share/tomcat11/bin/setenv.sh << EOF
 export CATALINA_OPTS="-Xms512m -Xmx2048m -XX:+UseG1GC"
 EOF'
-sudo chmod +x /usr/share/tomcat9/bin/setenv.sh
+sudo chmod +x /usr/share/tomcat11/bin/setenv.sh
 
-# ── GeoServer 2.28.2 ──
+# ── GeoServer 3.0.0 ──
 cd /tmp
-wget https://sourceforge.net/projects/geoserver/files/GeoServer/2.28.2/geoserver-2.28.2-war.zip
+wget https://sourceforge.net/projects/geoserver/files/GeoServer/3.0.0/geoserver-3.0.0-war.zip
 sudo apt install unzip -y
-unzip geoserver-2.28.2-war.zip
-sudo cp geoserver.war /var/lib/tomcat9/webapps/
+unzip geoserver-3.0.0-war.zip
+sudo cp geoserver.war /var/lib/tomcat11/webapps/
 
 # ── CORS (para visor web) ──
 # Esperar a que GeoServer se despliegue (~60 seg)
 # Luego editar web.xml para agregar filtro CORS
-sudo nano /var/lib/tomcat9/webapps/geoserver/WEB-INF/web.xml
+sudo nano /var/lib/tomcat11/webapps/geoserver/WEB-INF/web.xml
 # Agregar el bloque CORS antes de </web-app>
 
 # ── Carpeta de datos ──
@@ -142,18 +142,20 @@ sudo mkdir -p /opt/geodatos
 sudo chown tomcat:tomcat /opt/geodatos
 
 # ── Reiniciar ──
-sudo systemctl restart tomcat9
+sudo systemctl restart tomcat11
 
 # ── Verificar ──
-sudo systemctl status tomcat9
+sudo systemctl status tomcat11
 curl -I http://localhost:8080/geoserver/web/
 ```
 
 ### PostGIS en el servidor (opcional avanzado)
 
+Debian 13 trae PostgreSQL 17 y PostGIS 3.5 directo en sus repositorios:
+
 ```bash
 # Instalar PostgreSQL + PostGIS
-sudo apt install postgresql postgis postgresql-14-postgis-3 -y
+sudo apt install postgresql postgis -y
 
 # Crear base de datos
 sudo -u postgres createdb geoserver_prod
@@ -222,8 +224,8 @@ sudo certbot --nginx -d tudominio.com
 2. Ejecuta seed de zoom 0-8 para una capa
 3. Compara velocidad con y sin cache (F12 → Network)
 4. Crea cuenta en Google Cloud (cloud.google.com/free)
-5. Crea VM con Ubuntu 22.04, 4 GB RAM
-6. Instala Java + Tomcat + GeoServer en la VM
+5. Crea VM con Debian 13, 4 GB RAM
+6. Instala Java 17 + Tomcat 11 + GeoServer 3.0.0 en la VM
 7. Abre puerto 8080 en firewall
 8. Accede desde tu navegador local a la IP pública
 9. Cambia contraseña de admin

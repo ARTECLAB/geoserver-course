@@ -37,6 +37,8 @@
 **TUS DATOS DE EJEMPLO:** departamentos, municipios, ríos de Bolivia.
 Los estudiantes usarán datos de Natural Earth (genéricos, para cualquier país).
 
+**Antes de instalar, 2 minutos de contexto:** menciona que están usando GeoServer 3.0.0 (lanzado el 11 de junio de 2026, la primera versión mayor en 17 años). El dato que importa en la práctica: ahora pide Tomcat 11 en vez de Tomcat 9. Todo lo demás (workspaces, capas, WMS/WFS) es exactamente igual a lo que verán en cualquier GeoServer 2.x que se encuentren en un trabajo.
+
 ### Parte 2 — Instalación (25 min)
 
 **Instala EN VIVO en tu máquina.** Los estudiantes siguen en sus PCs.
@@ -44,21 +46,22 @@ Los estudiantes usarán datos de Natural Earth (genéricos, para cualquier país
 > "Vamos a usar la instalación profesional: WAR sobre Tomcat. ¿Por qué no el binario ZIP? Porque en producción nadie usa el Jetty embebido. Si desde el día 1 aprenden con Tomcat, cuando lleguemos al deploy en la nube ya saben cómo funciona."
 
 Secuencia:
-1. Verificar Java: `java -version`
-2. Verificar/instalar Tomcat 9
-3. Descargar GeoServer 2.28.2 WAR
+1. Verificar Java 17/21: `java -version`
+2. Verificar/instalar Tomcat 11 (en Debian 13: `sudo apt install tomcat11`)
+3. Descargar GeoServer 3.0.0 WAR
 4. Copiar `geoserver.war` a `webapps/`
 5. Iniciar Tomcat → esperar que despliegue (~60 seg)
 6. Abrir `http://localhost:8080/geoserver`
 7. Login con admin/geoserver
 
 **Errores que VAN a tener:**
-- Java no instalado → tener link de adoptium.net listo
+- Java no instalado → tener link de adoptium.net listo (OpenJDK 17)
 - Puerto 8080 ocupado → `netstat -ano | findstr 8080` para identificar
 - WAR no se despliega → verificar que está en `webapps/`, no en una subcarpeta
 - Memoria insuficiente → crear `setenv.bat`/`setenv.sh`
+- Alguien trae instrucciones viejas con Tomcat 9 → GeoServer 3.0 ya NO corre sobre Tomcat 9, aclarar esto de entrada
 
-> "Si les dice 'java not found', instalen OpenJDK 11 desde adoptium.net. Si el puerto 8080 está ocupado, primero cierren el programa que lo usa."
+> "Si les dice 'java not found', instalen OpenJDK 17 desde adoptium.net. Si el puerto 8080 está ocupado, primero cierren el programa que lo usa."
 
 ### Parte 3 — Interfaz (15 min)
 
@@ -98,7 +101,7 @@ Secuencia:
 
 | Problema | Solución |
 |----------|----------|
-| Java not found | Instalar OpenJDK 11 de adoptium.net |
+| Java not found | Instalar OpenJDK 17 de adoptium.net |
 | Port 8080 in use | `netstat -ano | findstr 8080` para identificar, cerrar el programa |
 | Shapefile no se lee | Verificar que .shp, .shx, .dbf, .prj están juntos |
 | Mapa en blanco | Compute from data → Compute from native bounds |

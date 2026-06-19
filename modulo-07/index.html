@@ -114,7 +114,7 @@
 
         <div class="card">
           <div class="card-title">Configurar caching en GeoServer</div>
-          <p>GeoWebCache ya viene integrado en GeoServer 2.28.2. Solo necesitas activar y configurar el caching por capa:</p>
+          <p>GeoWebCache ya viene integrado en GeoServer 3.0.0 (alineado con GeoWebCache 2.0.0 internamente). Solo necesitas activar y configurar el caching por capa:</p>
 
           <p style="margin-top:12px;"><strong>Paso 1 — Verificar que está activo:</strong></p>
           <div class="codeblock">
@@ -206,13 +206,17 @@
             <pre><span class="hl-cm">Name:           geoserver-curso</span>
 <span class="hl-cm">Region:         southamerica-east1 (São Paulo — más cercano)</span>
 <span class="hl-cm">Machine type:   e2-medium (2 vCPU, 4 GB RAM)</span>
-<span class="hl-cm">Boot disk:      Ubuntu 22.04 LTS, 30 GB SSD</span>
+<span class="hl-cm">Boot disk:      Debian 13 (Trixie), 30 GB SSD</span>
 <span class="hl-cm">Firewall:       ✓ Allow HTTP traffic</span>
 <span class="hl-cm">                ✓ Allow HTTPS traffic</span></pre>
           </div>
           <div class="callout callout--info">
             <span class="callout-icon">💡</span>
             <div><strong>e2-medium (4 GB RAM)</strong> es suficiente para GeoServer con datos pequeños/medianos. Para producción con muchos usuarios necesitarías más RAM. Pero para el curso y prácticas está perfecto.</div>
+          </div>
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div><strong>¿Por qué Debian 13 y no Ubuntu?</strong> Misma familia que usamos en la Clase 1, y trae Tomcat 11 — el que requiere GeoServer 3.0 — directo en sus repositorios <code>apt</code>, sin pasos extra.</div>
           </div>
         </div>
 
@@ -233,29 +237,29 @@
             <pre><span class="hl-cm"># 1. Actualizar sistema</span>
 sudo apt update && sudo apt upgrade -y
 
-<span class="hl-cm"># 2. Instalar Java</span>
-sudo apt install openjdk-11-jdk -y
+<span class="hl-cm"># 2. Instalar Java 17</span>
+sudo apt install openjdk-17-jdk -y
 java -version
 
-<span class="hl-cm"># 3. Instalar Tomcat 9</span>
-sudo apt install tomcat9 tomcat9-admin -y
-sudo systemctl enable tomcat9
-sudo systemctl start tomcat9
+<span class="hl-cm"># 3. Instalar Tomcat 11</span>
+sudo apt install tomcat11 -y
+sudo systemctl enable tomcat11
+sudo systemctl start tomcat11
 
 <span class="hl-cm"># 4. Configurar memoria para GeoServer</span>
-sudo nano /usr/share/tomcat9/bin/setenv.sh
+sudo nano /usr/share/tomcat11/bin/setenv.sh
 <span class="hl-cm"># Escribir: export CATALINA_OPTS="-Xms512m -Xmx2048m"</span>
 <span class="hl-cm"># Guardar: Ctrl+O, Enter, Ctrl+X</span>
 
-<span class="hl-cm"># 5. Descargar GeoServer 2.28.2 WAR</span>
+<span class="hl-cm"># 5. Descargar GeoServer 3.0.0 WAR</span>
 cd /tmp
-wget https://sourceforge.net/projects/geoserver/files/GeoServer/2.28.2/geoserver-2.28.2-war.zip
+wget https://sourceforge.net/projects/geoserver/files/GeoServer/3.0.0/geoserver-3.0.0-war.zip
 sudo apt install unzip -y
-unzip geoserver-2.28.2-war.zip
-sudo cp geoserver.war /var/lib/tomcat9/webapps/
+unzip geoserver-3.0.0-war.zip
+sudo cp geoserver.war /var/lib/tomcat11/webapps/
 
 <span class="hl-cm"># 6. Reiniciar Tomcat</span>
-sudo systemctl restart tomcat9
+sudo systemctl restart tomcat11
 
 <span class="hl-cm"># 7. Esperar ~60 segundos</span>
 <span class="hl-cm"># Abrir: http://IP_EXTERNA:8080/geoserver</span></pre>
@@ -316,13 +320,13 @@ sudo chown -R tomcat:tomcat /opt/geodatos</pre>
           <div class="codeblock">
             <div class="codeblock-bar"><span class="codeblock-lang">Bash — Comandos del día a día</span><button class="codeblock-copy">Copiar</button></div>
             <pre><span class="hl-cm"># Ver estado de Tomcat</span>
-sudo systemctl status tomcat9
+sudo systemctl status tomcat11
 
 <span class="hl-cm"># Reiniciar Tomcat (reinicia GeoServer)</span>
-sudo systemctl restart tomcat9
+sudo systemctl restart tomcat11
 
 <span class="hl-cm"># Ver logs en tiempo real</span>
-sudo tail -f /var/log/tomcat9/catalina.out
+sudo tail -f /var/log/tomcat11/catalina.out
 
 <span class="hl-cm"># Ver uso de disco</span>
 df -h
@@ -432,8 +436,8 @@ htop</pre>
           <li>Ejecuta un <strong>seed</strong> de zoom 0 a 8 para una capa. Verifica que los tiles se generan.</li>
           <li>Compara la velocidad: carga el mapa en Layer Preview sin cache vs con cache. Abre F12 → Network para ver los tiempos.</li>
           <li>Crea una cuenta en <strong>Google Cloud</strong> (cloud.google.com/free).</li>
-          <li>Crea una <strong>VM</strong> con Ubuntu 22.04 y 4 GB RAM.</li>
-          <li>Instala <strong>Java + Tomcat + GeoServer</strong> en la VM vía SSH.</li>
+          <li>Crea una <strong>VM</strong> con Debian 13 y 4 GB RAM.</li>
+          <li>Instala <strong>Java 17 + Tomcat 11 + GeoServer 3.0.0</strong> en la VM vía SSH.</li>
           <li>Abre el <strong>puerto 8080</strong> en el firewall de Google Cloud.</li>
           <li>Accede a <code>http://TU_IP:8080/geoserver</code> desde tu navegador local.</li>
           <li><strong>Cambia la contraseña de admin</strong> inmediatamente.</li>

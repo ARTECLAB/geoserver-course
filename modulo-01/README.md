@@ -69,12 +69,22 @@ OGC (Open Geospatial Consortium) define los estándares que permiten que cualqui
 
 ---
 
-## Parte 2 — Instalación de GeoServer 2.28.2 (25 min)
+## Parte 1.5 — ¿Por qué GeoServer 3.0?
+
+Este curso usa **GeoServer 3.0.0**, publicado oficialmente el 11 de junio de 2026 — la primera versión mayor en 17 años de la serie 2.x. Lo importante para el curso:
+
+- **Migró a Spring 7 / Jakarta EE** → ahora requiere **Tomcat 11.x** (o Jetty 12.1), ya no Tomcat 9.
+- **Java 17** como línea base (LTS), también funciona con Java 21.
+- **Interfaz renovada** visualmente, pero los mismos conceptos: Workspace, Store, Layer, Style, Security.
+- **Migración sin sustos** desde 2.28.x: el Data Directory no cambia.
+- **WMS, WFS, SLD y CQL no cambiaron** — son estándares OGC, independientes de la versión del servidor.
+
+## Parte 2 — Instalación de GeoServer 3.0.0 (25 min)
 
 ### ¿Por qué WAR + Tomcat y no el binario ZIP?
 
 GeoServer se distribuye de dos formas:
-- **Binario ZIP** — Incluye un mini-servidor (Jetty). Rápido para probar, pero NO es lo que se usa en producción.
+- **Binario ZIP** — Incluye un mini-servidor (Jetty 12.1 en la 3.0). Rápido para probar, pero NO es lo que se usa en producción.
 - **WAR** — Se despliega sobre Apache Tomcat, el servidor de aplicaciones Java estándar de la industria. Es lo que usan gobiernos, empresas e instituciones.
 
 En este curso usamos **WAR + Tomcat** desde el día 1 porque:
@@ -84,8 +94,8 @@ En este curso usamos **WAR + Tomcat** desde el día 1 porque:
 
 ### Requisitos previos
 
-- **Java 21+** (OpenJDK recomendado)
-- **Apache Tomcat 9.x** (compatible con GeoServer 2.28.2)
+- **Java 17 o 21** (OpenJDK recomendado)
+- **Apache Tomcat 11.x** (requerido por GeoServer 3.0 — Tomcat 9 ya NO es compatible)
 - Al menos 2GB RAM disponibles
 - Puerto 8080 libre (Tomcat lo usa por defecto)
 
@@ -93,62 +103,66 @@ En este curso usamos **WAR + Tomcat** desde el día 1 porque:
 
 ```powershell
 # ── 1. Instalar Java ──
-# Descargar OpenJDK 21 desde https://adoptium.net/
+# Descargar OpenJDK 17 desde https://adoptium.net/
 # Ejecutar el instalador, marcar "Set JAVA_HOME" durante la instalación
 # Verificar:
 java -version
 
-# ── 2. Instalar Apache Tomcat 9 ──
-# Descargar desde https://tomcat.apache.org/download-90.cgi
+# ── 2. Instalar Apache Tomcat 11 ──
+# Descargar desde https://tomcat.apache.org/download-11.cgi
 # → "Binary Distributions" → Core → ZIP (64-bit)
-# Descomprimir en C:\tomcat9
+# Descomprimir en C:\tomcat11
 
 # Probar que Tomcat arranca:
-cd C:\tomcat9\bin
+cd C:\tomcat11\bin
 startup.bat
 # Abrir http://localhost:8080 → debería mostrar la página de Tomcat
 # Si funciona, detenerlo: shutdown.bat
 
 # ── 3. Desplegar GeoServer WAR ──
-# Descargar GeoServer 2.28.2 WAR desde:
+# Descargar GeoServer 3.0.0 WAR desde:
 # https://geoserver.org/release/stable/
 # → "Web Archive" → descargar geoserver.war
 
 # Copiar el archivo geoserver.war a la carpeta webapps de Tomcat:
-copy geoserver.war C:\tomcat9\webapps\
+copy geoserver.war C:\tomcat11\webapps\
 
 # ── 4. Iniciar Tomcat ──
-cd C:\tomcat9\bin
+cd C:\tomcat11\bin
 startup.bat
 
 # Esperar ~60 segundos (Tomcat despliega el WAR automáticamente)
 # Abrir: http://localhost:8080/geoserver
 ```
 
-### Linux (Ubuntu/Debian)
+### Linux — Debian 13 (Trixie)
+
+Usamos Debian 13 porque trae Tomcat 11 directo en sus repositorios — la misma familia de Linux que usaremos para el deploy en la nube en el Módulo 7.
 
 ```bash
 # ── 1. Instalar Java ──
 sudo apt update
-sudo apt install openjdk-21-jdk -y
+sudo apt install openjdk-17-jdk -y
 java -version
 
-# ── 2. Instalar Tomcat 9 ──
-sudo apt install tomcat9 tomcat9-admin -y
+# ── 2. Instalar Tomcat 11 ──
+sudo apt install tomcat11 -y
 
 # Verificar que Tomcat está corriendo:
-sudo systemctl status tomcat9
+sudo systemctl status tomcat11
 # Abrir http://localhost:8080 → página de Tomcat
 
 # ── 3. Desplegar GeoServer WAR ──
 cd /tmp
-wget https://sourceforge.net/projects/geoserver/files/GeoServer/2.28.2/geoserver-2.28.2-war.zip
-unzip geoserver-2.28.2-war.zip
-sudo cp geoserver.war /var/lib/tomcat9/webapps/
+wget https://sourceforge.net/projects/geoserver/files/GeoServer/3.0.0/geoserver-3.0.0-war.zip
+unzip geoserver-3.0.0-war.zip
+sudo cp geoserver.war /var/lib/tomcat11/webapps/
 
 # ── 4. Esperar ~60 segundos y abrir ──
 # http://localhost:8080/geoserver
 ```
+
+> 💡 Si tu distribución no empaqueta aún Tomcat 11 vía `apt`, descarga el ZIP binario directo de `tomcat.apache.org` como en Windows.
 
 ### Credenciales por defecto
 
@@ -163,12 +177,12 @@ Contraseña: geoserver
 
 GeoServer necesita suficiente memoria. Configura Tomcat para darle al menos 1GB:
 
-**Windows:** Editar `C:\tomcat9\bin\setenv.bat` (crear si no existe):
+**Windows:** Editar `C:\tomcat11\bin\setenv.bat` (crear si no existe):
 ```bat
 set CATALINA_OPTS=-Xms512m -Xmx2048m
 ```
 
-**Linux:** Crear `/usr/share/tomcat9/bin/setenv.sh`:
+**Linux:** Crear `/usr/share/tomcat11/bin/setenv.sh`:
 ```bash
 export CATALINA_OPTS="-Xms512m -Xmx2048m"
 ```

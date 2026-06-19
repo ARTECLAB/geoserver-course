@@ -125,15 +125,35 @@
         </div>
       </div>
 
+      <!-- ── Novedades GeoServer 3 ── -->
+      <div class="sec">
+        <h2 class="sec-heading">🆕 ¿Por qué GeoServer 3.0?</h2>
+        <div class="card">
+          <div class="card-title">La primera gran versión en 17 años de la serie 2.x</div>
+          <p>Este curso usa <strong>GeoServer 3.0.0</strong>, publicado oficialmente el 11 de junio de 2026 — la primera versión mayor desde que existe la serie 2.x. No es solo un número: es una modernización completa de la base sobre la que corre GeoServer.</p>
+          <div class="glossary" style="margin-top:10px;">
+            <div class="glossary-item"><span class="glossary-term">Base moderna</span><span class="glossary-def">Migración a Spring 7 y Jakarta EE — el "motor" interno de GeoServer queda alineado con el ecosistema Java actual.</span></div>
+            <div class="glossary-item"><span class="glossary-term">Servidor de aplicaciones</span><span class="glossary-def">Ahora requiere Tomcat 11.x o Jetty 12.1 (antes Tomcat 9 era suficiente). Es el cambio práctico más importante para instalarlo.</span></div>
+            <div class="glossary-item"><span class="glossary-term">Java</span><span class="glossary-def">Línea base Java 17 (LTS), también funciona con Java 21.</span></div>
+            <div class="glossary-item"><span class="glossary-term">Interfaz renovada</span><span class="glossary-def">La administración web tiene un look actualizado, pero los conceptos (Workspaces, Stores, Layers, Styles, Security) son exactamente los mismos que en 2.x.</span></div>
+            <div class="glossary-item"><span class="glossary-term">Migración sin sustos</span><span class="glossary-def">Quien viene de GeoServer 2.28.x puede migrar sin tocar su Data Directory — todo lo que aprendas aquí te sirve igual si en el futuro trabajas con un GeoServer 2.x existente.</span></div>
+          </div>
+          <div class="callout callout--info">
+            <span class="callout-icon">💡</span>
+            <div>WMS, WFS, SLD y CQL son <strong>estándares OGC</strong> — no cambiaron con la versión 3.0. Lo que cambia es la infraestructura para correr el servidor (Java, Tomcat/Jetty) y algunos detalles de la interfaz. Todo lo que aprendas sobre workspaces, capas, estilos y filtros aplica igual en 2.x y en 3.x.</div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── Instalación ── -->
       <div class="sec">
-        <h2 class="sec-heading">📦 Instalación de GeoServer</h2>
+        <h2 class="sec-heading">📦 Instalación de GeoServer 3.0</h2>
 
         <div class="card">
           <div class="card-title">Requisitos previos</div>
           <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin:12px 0;">
             <div style="background:var(--bg-surface); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); font-size:0.88rem;">
-              <strong>Java 21</strong> — GeoServer está escrito en Java. Sin Java, no arranca.
+              <strong>Java 17 o 21</strong> — GeoServer está escrito en Java. Sin Java, no arranca.
             </div>
             <div style="background:var(--bg-surface); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); font-size:0.88rem;">
               <strong>2 GB RAM</strong> — mínimo libre para que GeoServer funcione bien.
@@ -146,36 +166,40 @@
 
         <div class="card">
           <div class="card-title">¿Por qué WAR + Tomcat?</div>
-          <p>GeoServer se puede instalar de dos formas: como binario ZIP (incluye un mini-servidor) o como archivo WAR que se despliega en Apache Tomcat. En este curso usamos <strong>WAR + Tomcat</strong> porque es la forma profesional — es lo que encontrarás en cualquier trabajo real, y cuando lleguemos al deploy en la nube (Módulo 7) ya sabrás exactamente cómo funciona.</p>
+          <p>GeoServer se puede instalar de dos formas: como binario ZIP (incluye un mini-servidor Jetty embebido) o como archivo WAR que se despliega en un servidor de aplicaciones como Apache Tomcat. En este curso usamos <strong>WAR + Tomcat</strong> porque es la forma profesional — es lo que encontrarás en cualquier trabajo real, y cuando lleguemos al deploy en la nube (Módulo 7) ya sabrás exactamente cómo funciona.</p>
+          <div class="callout callout--warn">
+            <span class="callout-icon">⚠️</span>
+            <div><strong>Cambio importante en GeoServer 3.0:</strong> ahora requiere <strong>Tomcat 11.x</strong> (o Jetty 12.1) porque migró a Jakarta EE. Tomcat 9, que usaban los cursos basados en GeoServer 2.x, ya no es compatible.</div>
+          </div>
         </div>
 
         <div class="card">
-          <div class="card-title">Windows — Instalación WAR + Tomcat</div>
+          <div class="card-title">Windows — Instalación WAR + Tomcat 11</div>
           <div class="codeblock">
             <div class="codeblock-bar"><span class="codeblock-lang">PowerShell</span><button class="codeblock-copy">Copiar</button></div>
-            <pre><span class="hl-cm"># ── 1. Verificar que Java está instalado ──</span>
-<span class="hl-cm"># Si no lo tienes: descargar OpenJDK 21 de https://adoptium.net/</span>
+            <pre><span class="hl-cm"># ── 1. Verificar que Java está instalado (17 o 21) ──</span>
+<span class="hl-cm"># Si no lo tienes: descargar OpenJDK 17 de https://adoptium.net/</span>
 java -version
 
-<span class="hl-cm"># ── 2. Instalar Apache Tomcat 9 ──</span>
-<span class="hl-cm"># Descargar de https://tomcat.apache.org/download-90.cgi</span>
-<span class="hl-cm"># → Core → ZIP (64-bit) → descomprimir en C:\tomcat9</span>
+<span class="hl-cm"># ── 2. Instalar Apache Tomcat 11 ──</span>
+<span class="hl-cm"># Descargar de https://tomcat.apache.org/download-11.cgi</span>
+<span class="hl-cm"># → Core → ZIP (64-bit) → descomprimir en C:\tomcat11</span>
 
 <span class="hl-cm"># Probar que Tomcat arranca:</span>
-cd C:\tomcat9\bin
+cd C:\tomcat11\bin
 startup.bat
 <span class="hl-cm"># Abrir http://localhost:8080 → página de Tomcat</span>
 <span class="hl-cm"># Si funciona, detenerlo:</span>
 shutdown.bat
 
-<span class="hl-cm"># ── 3. Desplegar GeoServer 2.28.2 WAR ──</span>
+<span class="hl-cm"># ── 3. Desplegar GeoServer 3.0.0 WAR ──</span>
 <span class="hl-cm"># Descargar de https://geoserver.org/release/stable/</span>
 <span class="hl-cm"># → "Web Archive" → descargar geoserver.war</span>
 <span class="hl-cm"># Copiar a la carpeta webapps de Tomcat:</span>
-copy geoserver.war C:\tomcat9\webapps\
+copy geoserver.war C:\tomcat11\webapps\
 
 <span class="hl-cm"># ── 4. Iniciar Tomcat (despliega el WAR automáticamente) ──</span>
-cd C:\tomcat9\bin
+cd C:\tomcat11\bin
 startup.bat
 <span class="hl-cm"># Esperar ~60 segundos</span>
 <span class="hl-cm"># Abrir: http://localhost:8080/geoserver</span></pre>
@@ -183,27 +207,32 @@ startup.bat
         </div>
 
         <div class="card">
-          <div class="card-title">Linux (Ubuntu/Debian)</div>
+          <div class="card-title">Linux — Debian 13 (Trixie)</div>
+          <p>Usamos <strong>Debian 13</strong> como referencia porque trae Tomcat 11 disponible directo en sus repositorios — sin agregar repositorios externos. Es además la misma familia de Linux que usaremos para el deploy en la nube en el Módulo 7.</p>
           <div class="codeblock">
             <div class="codeblock-bar"><span class="codeblock-lang">Bash</span><button class="codeblock-copy">Copiar</button></div>
             <pre><span class="hl-cm"># ── 1. Instalar Java ──</span>
 sudo apt update
-sudo apt install openjdk-21-jdk -y
+sudo apt install openjdk-17-jdk -y
 java -version
 
-<span class="hl-cm"># ── 2. Instalar Tomcat 9 ──</span>
-sudo apt install tomcat9 tomcat9-admin -y
-sudo systemctl status tomcat9
+<span class="hl-cm"># ── 2. Instalar Tomcat 11 ──</span>
+sudo apt install tomcat11 -y
+sudo systemctl status tomcat11
 <span class="hl-cm"># Abrir http://localhost:8080 → página de Tomcat</span>
 
-<span class="hl-cm"># ── 3. Desplegar GeoServer 2.28.2 WAR ──</span>
+<span class="hl-cm"># ── 3. Desplegar GeoServer 3.0.0 WAR ──</span>
 cd /tmp
-wget https://sourceforge.net/projects/geoserver/files/GeoServer/2.28.2/geoserver-2.28.2-war.zip
-unzip geoserver-2.28.2-war.zip
-sudo cp geoserver.war /var/lib/tomcat9/webapps/
+wget https://sourceforge.net/projects/geoserver/files/GeoServer/3.0.0/geoserver-3.0.0-war.zip
+unzip geoserver-3.0.0-war.zip
+sudo cp geoserver.war /var/lib/tomcat11/webapps/
 
 <span class="hl-cm"># ── 4. Esperar ~60 segundos y abrir ──</span>
 <span class="hl-cm"># http://localhost:8080/geoserver</span></pre>
+          </div>
+          <div class="callout callout--tip">
+            <span class="callout-icon">💡</span>
+            <div>Si tu distribución Linux todavía no empaqueta Tomcat 11 (por ejemplo Ubuntu 22.04/24.04), descarga el ZIP binario de Tomcat 11 directo de <code>tomcat.apache.org</code> igual que en Windows, en vez de usar <code>apt</code>.</div>
           </div>
         </div>
 
@@ -223,12 +252,12 @@ Contraseña:  geoserver</pre>
         <div class="card">
           <div class="card-title">Configurar memoria (recomendado)</div>
           <p>GeoServer necesita memoria suficiente. Configura Tomcat para darle al menos 1GB:</p>
-          <p style="margin-top:8px;"><strong>Windows:</strong> Crear <code>C:\tomcat9\bin\setenv.bat</code>:</p>
+          <p style="margin-top:8px;"><strong>Windows:</strong> Crear <code>C:\tomcat11\bin\setenv.bat</code>:</p>
           <div class="codeblock">
             <div class="codeblock-bar"><span class="codeblock-lang">setenv.bat</span><button class="codeblock-copy">Copiar</button></div>
             <pre>set CATALINA_OPTS=-Xms512m -Xmx2048m</pre>
           </div>
-          <p style="margin-top:8px;"><strong>Linux:</strong> Crear <code>/usr/share/tomcat9/bin/setenv.sh</code>:</p>
+          <p style="margin-top:8px;"><strong>Linux (Debian 13):</strong> Crear <code>/usr/share/tomcat11/bin/setenv.sh</code>:</p>
           <div class="codeblock">
             <div class="codeblock-bar"><span class="codeblock-lang">setenv.sh</span><button class="codeblock-copy">Copiar</button></div>
             <pre>export CATALINA_OPTS="-Xms512m -Xmx2048m"</pre>
@@ -477,7 +506,7 @@ SRS:      EPSG:4326
             <div class="quiz-opt" data-val="a"><span class="quiz-dot"></span> Python</div>
             <div class="quiz-opt" data-val="b"><span class="quiz-dot"></span> Node.js</div>
             <div class="quiz-opt" data-val="c"><span class="quiz-dot"></span> PostgreSQL</div>
-            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Java (JDK 21)</div>
+            <div class="quiz-opt" data-val="d"><span class="quiz-dot"></span> Java (JDK 17 o 21)</div>
           </div>
           <div class="quiz-fb"></div>
         </div>
